@@ -14,7 +14,7 @@ when updating or adding code:
 
 matlab 
 - run setup_project.m to make all scripts visible
-
+- when using optional arguments, do not use nargin. use opts or something more robust. 
 NASA-79-tp1538-2.pdf is the manual for wind tunnel tests used to come up with the aero coefficients
 
 when I ask you stuff bout the report,  include the page numbers in the .pdf as well as the line numbers in th .txt file
