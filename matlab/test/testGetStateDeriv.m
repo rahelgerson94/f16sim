@@ -1,18 +1,31 @@
 global V_FT_S; global ALT_FT; global params; global c;
+c=getConstants();
 params = getVehicleParams(c);
-
+global aeroModel;
 %declarations
-dt = 0.01;
+dt = c.dt;
 SIM_DURATION = 5;
-time = linspace(0,ceil(SIM_DURATION/c.dt), N);
-X = zeros(N,13);
-FORCES=zeros(N,3);
-MOMENTS=zeros(N,3);
+
 AIL_IDX = 1;
 ELE_IDX = 2;
 RUD_IDX = 3;
-tApply = 2;
+%% simulation parameters
+SIM_DURATION = 5;
+SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
+APPLICATION_START_TIME = 2; 
+APPLICATION_START_IDX = ceil(APPLICATION_START_TIME/dt); 
+
 STEP_DURATION = 1;
+STEP_DURATION_SAMPLES = ceil(STEP_DURATION/dt);
+
+aert = zeros(4,SIM_DURATION_SAMPLES);aert(ELE_IDX, ...
+    APPLICATION_START_IDX:APPLICATION_START_IDX+STEP_DURATION_SAMPLES) = 15; %step for rudder
+aeroModel =  AeroModel(dataDir, ...
+    '', ... %cfgDir
+    params.Sref, ...
+    params.bref, ...
+    params.cref);
+
 %% initial values
 x0 = [1000; 0; 50;
      0; 0; 0; 
@@ -20,14 +33,15 @@ x0 = [1000; 0; 50;
      0; 0; -1000*c.FT2M
      ];
      x=x0;
-aert = zeros(N,4);
-aert(ELE_IDX, tApply:tApply+STEP_DURATION) = 1; %step for rudder
-
-for i = 2:N
-    u =aert(i,:)';
-    [xDot,FaeroInB, MaeroInB] = getXdotFromZ([x;u;]);
-    X(i,:) =  X(i-1,:) + xDot'*c.dt;
-    FORCES(i,:)=FaeroInB';
+time = linspace(0,SIM_DURATION ,SIM_DURATION_SAMPLES );
+X = zeros(SIM_DURATION_SAMPLES,13);
+FORCES=zeros(SIM_DURATION_SAMPLES,3);
+MOMENTS=zeros(SIM_DURATION_SAMPLES,3);
+for i = 2:SIM_DURATION_SAMPLES
+    u = aert(:,i);
+    [xDot,FaeroInB, MaeroInB] = getXdotFromZ([x;u;], aeroModel);
+    X(i,:) =  X(i-1,:) + xDot'*dt;
+    FORCES(i,:)=FaeroInB;
     MOMENTS(i,:)=MaeroInB';
    
 end

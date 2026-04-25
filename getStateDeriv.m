@@ -13,7 +13,7 @@
 
         xDot(7:10) = Quaternion.computeDerivative(qI2B, wInB );
 
-        qB2I = Quaternion.conjugate(qI2B)
+        qB2I = Quaternion.conjugate(qI2B);
         xDot(11:13) = Quaternion.rotateVectorByQuaternion(qB2I, ...
                 vInB);
      

@@ -1,4 +1,4 @@
-function [xDot,FaeroInB, MaeroInB] = getXdotFromZ(Z, params)
+function [xDot,FaeroInB, MaeroInB] = getXdotFromZ(Z, params, aeroModel)
     global c; 
     global params;
     global aeroModel;
