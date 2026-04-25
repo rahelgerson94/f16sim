@@ -61,3 +61,7 @@ printVecWithName(eas, "euler angles");
 printVecWithName(ned*c.M2FT, "ned (ft)");
 printVecWithName(uStar, "aert");
 printVecWithName([vInB(1) vInB(3) pqr(2) eas(2) ned(1)  ned(3)], "xLon");
+
+if bPlot
+
+end

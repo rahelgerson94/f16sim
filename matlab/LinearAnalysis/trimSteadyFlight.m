@@ -11,7 +11,7 @@ global V_FT_S;
 global ALT_FT;
 c=getConstants();
 params = getVehicleParams(c);
-V_FT_S = 502;
+V_FT_S = 375.11;
 ALT_FT = 1000;
 aeroModel =  AeroModel(dataDir, ...
     '', ... %cfgDir
@@ -48,7 +48,7 @@ function [J ]= costStraighLevel(Z)
     x = Z(1:c.nStates);
     u = Z(c.nStates+1: end);
     assert(length(u)==4)
-    xDot = getXdotFromZ(Z);
+    [~,~,xDot] = getXdotFromZ(Z);
     [vInB, wInB, qI2B, ned] = unpackStateVector(x);
     [vInBdot, wInBdot, qI2Bdot, nedDot] = unpackStateVector(xDot);
     [a,beta]=uvwToab(vInB);
@@ -70,31 +70,4 @@ function [J ]= costStraighLevel(Z)
 end
 
 
-function xDot = getXdotFromZ(Z, params)
-    global c; 
-    global params;
-    global aeroModel;
-   
-    x = Z(1:c.nStates); 
-    u = Z(c.nStates+1: end);
-    assert(length(u) == 4);
-    [vInB, wInB, qI2B, ned] = unpackStateVector(x);
-    
-    [a,b ]= uvwToab(vInB);
-    V = vecnorm(vInB);
-    rho = rhoFromAlt(ned(3));
-    alphaDeg = a*c.RAD2DEG; betaDeg  = b*c.RAD2DEG;
-
-    [ FaeroInB, MaeroInB] = aeroModel.getAeroFM( ...
-        alphaDeg, ...
-        betaDeg, ...
-        V,  ...
-        wInB, ...
-        rho,...
-        u);
-    W = c.g * params.mass;
-    %generate an artificial lift force opposing gravity  
-    FaeroInB = FaeroInB + Quaternion.rotateVectorByQuaternion(qI2B, [0,0,-W]);
-    xDot = getStateDeriv(x,FaeroInB, zeros(3,1), MaeroInB, zeros(3,1), params);
-end
 

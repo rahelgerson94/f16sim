@@ -1,29 +1,30 @@
-prp = fileparts(fileparts(mfilename('fullpath')));
-dataDir = fullfile(prp, 'AeroModel', 'data');
-addpath(prp);
-addpath(fullfile(prp, 'AeroModel'));
-addpath(fullfile(prp, 'tools'));
-addpath(fullfile(prp, 'KinematicMath'));
-c=getConstants();
-params = getVehicleParams(c);
 c = getConstants();
-dt = 0.01;
-N = 400;
+params = getVehicleParams(c);
+dt = c.dt;
+AIL_IDX = 1;
+ELE_IDX = 2;
+RUD_IDX = 3;
+%% simulation parameters
+SIM_DURATION = 5;
+SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
+APPLICATION_START_TIME = 2; 
+APPLICATION_START_IDX = ceil(APPLICATION_START_TIME/dt); 
+
+STEP_DURATION = 1;
+STEP_DURATION_SAMPLES = ceil(STEP_DURATION/dt);
+
+
+% initialize State and time, force, moment vectors
 s = State(dt, getVehicleParams(c));
 s.setInitialState(ned0 = [0; 0; -1000*c.FT2M], ...
                   vInB0 = [1000; 0; 50]*c.FT2M, ...
                   qI2B0 = [1; 0; 0; 0]);
-STEP_DURATION = 10;
-time = linspace(0,dt*N, N);
-aert = zeros(4,N);
-AIL_IDX = 1;
-ELE_IDX = 2;
-RUD_IDX = 3;
-tApply = 10;
-aert(RUD_IDX, tApply:tApply+STEP_DURATION) = 15; %step for rudder
+time = linspace(0,SIM_DURATION ,SIM_DURATION_SAMPLES );
+X = zeros(SIM_DURATION_SAMPLES,13);
+aert = zeros(4,SIM_DURATION_SAMPLES);
+aert(ELE_IDX, ...
+    APPLICATION_START_IDX:APPLICATION_START_IDX+STEP_DURATION_SAMPLES) = 15; %degrees 
 
-
-X = zeros(N,13);
 aeromodel =  AeroModel(dataDir, ...
     '', ... %cfgDir
     params.Sref, ...
@@ -36,9 +37,9 @@ MpropInB = zeros(3,1);
 FpropInB =  zeros(3,1);
 W = params.mass*params.g;
 x = x0;
-forces=zeros(N,3);
-moments=zeros(N,3);
-for i = 1:N
+forces=zeros(SIM_DURATION_SAMPLES,3);
+moments=zeros(SIM_DURATION_SAMPLES,3);
+for i = 1:SIM_DURATION_SAMPLES
     
     %compute the aerodynamic F&M due to atmosphere, and control surface
     %deflections

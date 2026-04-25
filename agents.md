@@ -10,3 +10,13 @@ when updating or adding code:
 6. comments in python: hashtags. 
 
 
+## REPO Structure
+
+matlab 
+- run setup_project.m to make all scripts visible
+
+NASA-79-tp1538-2.pdf is the manual for wind tunnel tests used to come up with the aero coefficients
+
+when I ask you stuff bout the report,  include the page numbers in the .pdf as well as the line numbers in th .txt file
+
+when i ask you to derive something, do so in math/latex style not code
