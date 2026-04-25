@@ -17,6 +17,7 @@ plotVector3(time, forces, "forces", struct("axes", forceAxes));
 plotVector3(time, moments, "moments", struct("axes", momentAxes));
 plotVector3(time, uvw*c.M2FT, "uvw (ft/s)", struct("axes", uvwAxes));
 plotVector3(time, pqr*c.RAD2DEG, "w (deg/s)", struct("axes", pqrAxes));
+linkDashboardXAxes(forceAxes, momentAxes, uvwAxes, pqrAxes);
 
 % Override subplot's wide default margins with a compact dashboard layout.
 layoutOpts = struct( ...
@@ -33,6 +34,13 @@ applyTightDashboardLayout(forceAxes, momentAxes, uvwAxes, pqrAxes, layoutOpts);
     alpha = atan2(uvw(:,3), uvw(:,1));
     beta = asin(uvw(:,2) ./ V);
     plot3Scalars(time, alpha, beta , V*c.M2FT , ["alpha  (deg)", "beta  (deg)" , "V (ft/s)"], "")
+
+end
+
+function linkDashboardXAxes(forceAxes, momentAxes, uvwAxes, pqrAxes)
+% Link the dashboard time axes so zooming one plot keeps all plots aligned.
+allAxes = [forceAxes(:); momentAxes(:); uvwAxes(:); pqrAxes(:)];
+linkaxes(allAxes, 'x');
 
 end
 
