@@ -23,16 +23,28 @@ classdef State < handle
         nStates;
         nControls;
         c;
+        aeroModel;
     end
 
     methods
-        function self = State( dt, vehicleParams)
+        function self = State( dt, vehicleParams, options)
+            arguments
+                dt; 
+                vehicleParams;
+                options.dataDir = fullfile(fileparts(mfilename('fullpath')), '..', 'AeroModel', 'data');
+            end
             self.dt = dt;
             self.nStates = 13;
             self.nControls = 4;
             self.params = vehicleParams;
             self.reset();
             self.c = getConstants();
+            %# Use the AeroModel data directory found relative to this State class file.
+            self.aeroModel =   AeroModel(options.dataDir, ...
+                    '', ... %cfgDir
+                    vehicleParams.Sref, ...
+                    vehicleParams.bref, ...
+                    vehicleParams.cref);
         end
 
         function reset(self)
@@ -127,7 +139,7 @@ classdef State < handle
             W = self.c.g*self.params.mass;
            FgInB =  Quaternion.rotateVectorByQuaternion(qI2B, [0,0,W])';
 
-           
+
            dState(1:3)= (FaeroInB(:) + FgInB(:) + FpropInB(:) )/self.params.mass - cross(wInB,vInB);
            HinB = self.params.I*wInB;
            dState(4:6) = self.params.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
@@ -137,8 +149,41 @@ classdef State < handle
            qB2I = Quaternion.conjugate(qI2B);
            dState(11:self.nStates) = Quaternion.rotateVectorByQuaternion(qB2I, ...
                 [self.u; self.v; self.w]);
-     
+
        end
+
+      % function dState = getDeriv(self, u)
+      %      dState = zeros(self.nStates,1);
+      %     [vInB, wInB, qI2B] = self.unpack();
+      %        [a,b ]= uvwToab(vInB);
+      %       V = vecnorm(vInB);
+      %       rho = rhoFromAlt(-self.d);
+      %      [ FaeroInB, MaeroInB] = self.aeroModel.getAeroFM( ...
+      %          a*c.RAD2DEG, ...
+      %           b*c.RAD2DEG, ...
+      %           V,  ...
+      %           wInBrad, ...
+      %           rho,...
+      %           u);
+      % 
+      % 
+      % 
+      %       W = self.c.g*self.params.mass;
+      %      FgInB =  Quaternion.rotateVectorByQuaternion(qI2B, [0,0,W])';
+      % 
+      %      FpropInB = zeros(3,1); %TODO: make engine model
+      %      MpropInB = zeros(3,1);%TODO: make engine model
+      %      dState(1:3)= (FaeroInB(:) + FgInB(:) + FpropInB(:) )/self.params.mass - cross(wInB,vInB);
+      %      HinB = self.params.I*wInB;
+      %      dState(4:6) = self.params.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
+      % 
+      % 
+      %       dState(7:10) =Quaternion.computeDerivative(qI2B, wInB );
+      %      qB2I = Quaternion.conjugate(qI2B);
+      %      dState(11:self.nStates) = Quaternion.rotateVectorByQuaternion(qB2I, ...
+      %           [self.u; self.v; self.w]);
+      % 
+      %  end
 
        function [vInB, wInB, qI2B, ned] = unpack(self)
             wInB = [self.p, self.q, self.r].';
@@ -166,6 +211,11 @@ classdef State < handle
             self.e = self.e + dState(12)*self.dt;
             self.d = self.d + dState(13)*self.dt;
        end
+
+
+
     end
+
+
 end
            

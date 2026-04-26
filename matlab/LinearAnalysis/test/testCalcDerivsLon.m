@@ -1,37 +1,49 @@
 
-cd ..; setupProject; cd LinearAnalysis;
+% Run project setup from the matlab root so this test works from any folder.
+testDir = fileparts(mfilename('fullpath'));
+matlabRoot = fullfile(testDir, '..', '..');
+currentDir = pwd;
+cd(matlabRoot); setupProject; cd(fullfile(matlabRoot, 'LinearAnalysis'));
+c = getConstants();
 f16NominalTrim; % get xe, ue into the workspace
+cd(currentDir);
 test = CalcDerivsLon(xe, ue);
 dt = c.dt;
-SIM_DURATION = 5;
 
-AIL_IDX = 1;
-ELE_IDX = 2;
-RUD_IDX = 3;
+
 %% simulation parameters
-SIM_DURATION = 5;
+SIM_DURATION = 1;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
-APPLICATION_START_TIME = 2; 
-APPLICATION_START_IDX = ceil(APPLICATION_START_TIME/dt); 
+% Build the time vector used by the longitudinal state plot.
+time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
 
-STEP_DURATION = 1;
-STEP_DURATION_SAMPLES = 1*c.dt;
-
+STEP_DURATION_SAMPLES = 1/c.dt;
 X_LON = zeros(SIM_DURATION_SAMPLES,6);
-U = zeros(2,SIM_DURATION_SAMPLES);
+FORCES = zeros(SIM_DURATION_SAMPLES,3);
+MOMENTS = zeros(SIM_DURATION_SAMPLES,3);
 test.setInitialState(xe);
 
 for i = 1:SIM_DURATION_SAMPLES
-    test.update(ue);
-    X_LON(i,:) = test.getState();
-    
+    if i <= STEP_DURATION_SAMPLES
+        u = ue;
+    else
+        u = zeros(2,1);
+    end
+    test.update(u);
+    % Store the column state vector as one row in the simulation history.
+    X_LON(i,:) = test.getState()';
+    [f,m] = test.getAeroFM(test.x, u);
+    FORCES(i,:) = f;
+    MOMENTS(i,:) = m;
 end
 
- [UVW, PQR, Q, NED] = unpackX(X_LON);
- plotStatesLon(time, U,W,Q,TH);
-
+ [U,W,Q,TH, N,D] = unpackXlon(X_LON);
+ plotStatesLon(time, U,W,Q,TH, N,D);
+ plotVector3(time, FORCES, "Faero");
+ plotVector3(time, MOMENTS, "Maero");
  function [U,W,Q,TH, N,D] = unpackXlon(Xlon)
-    U = X(:, 1); W = X(:, 2);
-    Q = X(:, 3); TH = X(:, 4);
-    N = X(:, 5); D = X(:, 6);
+    % Split the longitudinal state history into scalar traces for plotting.
+    U = Xlon(:, 1); W = Xlon(:, 2);
+    Q = Xlon(:, 3); TH = Xlon(:, 4);
+    N = Xlon(:, 5); D = Xlon(:, 6);
     end
