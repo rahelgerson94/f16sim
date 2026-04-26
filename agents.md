@@ -13,7 +13,7 @@ when updating or adding code:
 ## REPO Structure
 
 matlab 
-- run setup_project.m to make all scripts visible
+- run setupProject.m to make all scripts visible
 - when using optional arguments, do not use nargin. use opts or something more robust. 
 NASA-79-tp1538-2.pdf is the manual for wind tunnel tests used to come up with the aero coefficients
 
