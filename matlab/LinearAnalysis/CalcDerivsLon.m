@@ -93,7 +93,7 @@ classdef CalcDerivsLon < handle
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
                 [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
-                wDot = (FaeroInB(3) + fProp(3))/m - c.g*cos(theta) - q*uBody;
+                wDot = (FaeroInB(3) + fProp(3))/m + c.g*cos(theta) + q*uBody;
             end
 
             function qDot = f3(x,u)
@@ -109,7 +109,7 @@ classdef CalcDerivsLon < handle
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
                 [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
-                thetaDot = f3(x,u,FaeroInB,MaeroInB,fProp,mProp);
+                thetaDot = q;
             end
 
             function xDotI = f5(x,u)
@@ -117,8 +117,6 @@ classdef CalcDerivsLon < handle
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
                 [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
-                % uBody = uBody + f1(x,u) * c.dt;
-                % wBody = wBody + f2(x,u) * c.dt;
                 xDotI = uBody*cos(theta) + wBody*sin(theta);
             end
 
@@ -127,8 +125,6 @@ classdef CalcDerivsLon < handle
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
                 [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
-                % uBody = uBody + f1(x,u,FaeroInB,MaeroInB,fProp,mProp) * c.dt;
-                % wBody = wBody + f2(x,u,FaeroInB,MaeroInB,fProp,mProp) * c.dt;
                 zDotI = -uBody*sin(theta) + wBody*cos(theta);
             end
 
