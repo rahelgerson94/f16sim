@@ -12,13 +12,13 @@ classdef CalcDerivsLon < handle
         ue (2,1) double;  %equilibrium control vector
         xe (6,1) double; %equilibrium state vector
         x (6,1) double;  %current state vector
-        u;
-        w;
+        Vt;
+        alpha;
+        theta; 
         q;
-        theta;
         xI;
         zI;
-        alpha;
+        nStates (1,1) int16;
     end
 
     methods
@@ -40,14 +40,14 @@ classdef CalcDerivsLon < handle
             self.ue = ue;
             self.xe = xe;
 
-            self.u = xe(1);
-            self.w = xe(2);
+            self.Vt = xe(1);
+            self.alpha = xe(2);
             self.q = xe(3);
             self.theta = xe(4);
             self.xI = xe(5);
             self.zI = xe(6);
             self.x = xe;
-            
+            self.nStates = 6;
         end
         function setInitialState(self, xe)
             self.xe = xe;
@@ -108,7 +108,7 @@ classdef CalcDerivsLon < handle
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-                [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
+                
                 thetaDot = q;
             end
 
@@ -116,7 +116,7 @@ classdef CalcDerivsLon < handle
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-                [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
+                
                 xDotI = uBody*cos(theta) + wBody*sin(theta);
             end
 
@@ -124,7 +124,7 @@ classdef CalcDerivsLon < handle
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-                [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
+                
                 zDotI = -uBody*sin(theta) + wBody*cos(theta);
             end
 
@@ -150,6 +150,14 @@ classdef CalcDerivsLon < handle
         end
         function update(self, u)
             xDot = self.calcDerivs(self.x, u);
+            self.x = self.x + xDot*self.c.dt;
+        end
+
+        function updateWithF(self,u)
+            xDot = zeros(6,1);
+            for i = 1:self.nStates
+                xDot(i) = self.F{i}(self.x, u);
+            end
             self.x = self.x + xDot*self.c.dt;
         end
         function x = getState(self)

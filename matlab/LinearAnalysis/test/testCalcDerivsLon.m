@@ -12,7 +12,7 @@ dt = c.dt;
 
 
 %% simulation parameters
-SIM_DURATION = 1;
+SIM_DURATION = 4;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
@@ -29,7 +29,7 @@ for i = 1:SIM_DURATION_SAMPLES
     else
         u = zeros(2,1);
     end
-    test.update(u);
+    test.updateWithF(u);
     % Store the column state vector as one row in the simulation history.
     X_LON(i,:) = test.getState()';
     [f,m] = test.getAeroFM(test.x, u);
