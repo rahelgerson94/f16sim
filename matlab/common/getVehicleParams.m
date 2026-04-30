@@ -11,7 +11,7 @@ params.xcgr = 0.35;         % reference center of gravity as a fraction of cbar
 params.xcg  = 0.30;         % center of gravity as a fraction of cbar.
 params.g = 9.866;
 
-% Moment of Inertial
+%% MASS PROPERTIES
 Ixx = 9496.0;            % Principle Moment of Intertia around X-axis, slugs*ft^2
 Iyy = 55814.0;           % Principle Moment of Intertia around Y-axis, slugs*ft^2
 Izz = 63100.0;           % Principle Moment of Intertia around Z-axis, slugs*ft^2 
@@ -26,4 +26,12 @@ params.I = [Ixx 0 Ixz;
 
 params.mass = 636.94*c.SLUG2KG;     % kg
 
+
+%% CONTROL SURFACE DEFLECTION LIMITS
+params.limits.cs.eSym = 25*c.DEG2RAD;  % (±) symmetric deflection
+params.limits.cs.eDif = 5.375*c.DEG2RAD; % (±) differential deflection
+params.limits.cs.a = 21.5; % (±)
+params.limits.cs.r = 30; % (±)
+params.limits.cs.lef = 25; % ONLY +
+params.limits.cs.sb = 60; % ONLY +
 end
