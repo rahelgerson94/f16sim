@@ -33,8 +33,7 @@ applyTightDashboardLayout(forceAxes, momentAxes, uvwAxes, pqrAxes, layoutOpts);
    V = vecnorm(uvw, 2, 2);
     alpha = atan2(uvw(:,3), uvw(:,1));
     beta = asin(uvw(:,2) ./ V);
-    plot3Scalars(time, alpha, beta , V*c.M2FT , ["alpha  (deg)", "beta  (deg)" , "V (ft/s)"], "")
-
+    plot3Scalars(time, alpha, beta , V*c.M2FT , ["α  (deg)", "β  (deg)" , "V (ft/s)"], "")
 end
 
 function linkDashboardXAxes(forceAxes, momentAxes, uvwAxes, pqrAxes)
