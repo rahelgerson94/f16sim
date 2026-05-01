@@ -1,14 +1,15 @@
 classdef CalcDerivsLon < handle
     properties
-
+        nStates = 6;
         F cell = cell(6,1); %obj.F{i}(args...)
         A (6,6) double;
-        B (3,6) double; % [A E T]
+        B (2,6) double; % [ E T]
         c struct;
         params struct;
         
         aeroModel ; 
         deltaXlon (6,1) double;
+        deltaUe (2,1) double;
         ue (2,1) double;  %equilibrium control vector
         xe (6,1) double; %equilibrium state vector
         x (6,1) double;  %current state vector
@@ -18,13 +19,15 @@ classdef CalcDerivsLon < handle
         q;
         xI;
         zI;
-        nStates (1,1) int16;
+        
+        THROTTLE_IDX=2; ELEVATOR_IDX=1;
     end
 
     methods
         function self = CalcDerivsLon(xe, ue)
-            self.A = zeros(6,6);
-            self.B = zeros(3,6);
+            self.nStates = 6;
+            self.A = zeros(self.nStates, self.nStates);
+            self.B = zeros(2,self.nStates);
             c = getConstants(); self.c = c;
             self.params = getVehicleParams(self.c);
             
@@ -36,10 +39,14 @@ classdef CalcDerivsLon < handle
                 self.params.bref, ...
                 self.params.cref);
 
-            self.deltaXlon = zeros(6,1);           
-            self.ue = ue;
+            
+            self.ue = ue; %[del_e, del_t]
             self.xe = xe;
 
+            self.deltaUe = 0.3*ue;
+            self.deltaXlon = 0.3*xe; 
+            self.checkXlon();
+            self.checkDeltaUe()
             self.Vt = xe(1);
             self.alpha = xe(2);
             self.q = xe(3);
@@ -47,15 +54,45 @@ classdef CalcDerivsLon < handle
             self.xI = xe(5);
             self.zI = xe(6);
             self.x = xe;
-            self.nStates = 6;
+            
         end
+        function checkXlon(self)
+            SMALL_ANGLE = 30; %deg
+            SMALL_ANGLE_RATE = 10;%deg
+            SMALL_VELOCITY=30; %ft / s
+            c = self.c;
+            for i =1:4
+                if self.deltaXlon(i) == 0
+                    switch i
+                        case 1
+                            self.deltaXlon(i) = SMALL_VELOCITY*c.M2FT; 
+                        case 2
+                            self.deltaXlon(i) = SMALL_ANGLE*c.DEG2RAD; 
+                        case 3
+                            self.deltaXlon(i)  = SMALL_ANGLE_RATE*c.DEG2RAD;
+                        case 4
+                            self.deltaXlon(i)  = SMALL_ANGLE*c.DEG2RAD;
+                    end%switch
+                end%if
+                end%for
+        end%funciton
+
+        function checkDeltaUe(self)
+            if self.deltaUe(self.THROTTLE_IDX) == 0
+                self.deltaUe(self.THROTTLE_IDX) = 0.3;
+            end
+            if self.deltaUe(self.ELEVATOR_IDX) == 0
+                self.deltaUe(self.ELEVATOR_IDX) = 0.3*self.params.limits.cs.eSym;
+            end
+        end
+       
         function setInitialState(self, xe)
             self.xe = xe;
             self.x = xe;
         end
         function reset(self)
-            self.A = zeros(6,6);
-            self.B = zeros(3,6);
+            self.A = zeros(self.nStates, self.nStates);
+            self.B = zeros(2,self.nStates);
         end
         function  [ FaeroInB, MaeroInB]  = getAeroFM(self, x,u)
                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
@@ -139,7 +176,7 @@ classdef CalcDerivsLon < handle
             [FaeroInB, MaeroInB] = self.getAeroFM(x, u_);
             fProp = zeros(3,1);
             mProp = zeros(3,1);
-            xDotLon = zeros(6,1);
+            xDotLon = zeros(self.nStates,1);
             xDotLon(1) = (FaeroInB(1) + fProp(1))/m - c.g*sin(theta) - q*wBody;
             xDotLon(2) = (FaeroInB(3) + fProp(3))/m + c.g*cos(theta) + q*uBody;
             xDotLon(3) = (MaeroInB(2) + mProp(2))/Iyy;
@@ -154,7 +191,7 @@ classdef CalcDerivsLon < handle
         end
 
         function updateWithF(self,u)
-            xDot = zeros(6,1);
+            xDot = zeros(self.nStates,1);
             for i = 1:self.nStates
                 xDot(i) = self.F{i}(self.x, u);
             end
@@ -168,7 +205,7 @@ classdef CalcDerivsLon < handle
         end
 
         function populateA(self)
-            deltaX = zeros(6,1);
+            deltaX = zeros(self.nStates,1);
             for i = 1: length(self.F)
                 for j = 1:length(self.xe)
                     deltaX(j) = self.deltaXlon(j);
