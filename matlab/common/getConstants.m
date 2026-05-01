@@ -72,4 +72,6 @@ c.i_vB = 1;
 c.i_wB = c.i_vB + 1 + 3;
 c.i_q  = c.i_wB + 1 + 3;
 c.i_rI = c.i_q +  1 + 4;
+
+c.DRAG_IDX = 1; c.LIFT_IDX = 3; c.Y_IDX=2;
 end
