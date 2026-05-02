@@ -8,7 +8,7 @@ figure('Color', 'w');
 tiledlayout(3,2);
 toPlot = {VT, ALPHA, Q, THETA, N,D};
 labels = {"Vt", "α", "q", "θ", "n", "d"};
-units = {c.M2FT, c.M2FT, c.RAD2DEG, c.RAD2DEG, c.M2FT, c.M2FT};
+units = {c.M2FT, c.RAD2DEG, c.RAD2DEG, c.RAD2DEG, c.M2FT, c.M2FT};
 unitNames = {"ft/s", "deg", "deg/s", "deg",  "ft", "ft"};
 
 plotIndex = 1;
