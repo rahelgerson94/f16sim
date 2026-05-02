@@ -55,7 +55,7 @@ function J = costStraighLevel(Z, Vt_ft_s, alt_ft, s)
     xDot = getXdotFromZ(Z);
     
     [vInBdot, wInBdot, qI2Bdot, nedDot] = unpackStateVector(xDot);
-    [a,beta]=uvwToab(vInB);
+    [Vt,a,beta]=uvw2mab(vInB);
     eulerAngles = Quaternion.eulerAngles321FromQuaternion(qI2B);
     % define the constraints vector Q 
     Q = [vInBdot;
@@ -84,7 +84,7 @@ function xDot = getXdotFromZ(Z, params)
     assert(length(u) == 4);
     [vInB, wInB, qI2B, ned] = unpackStateVector(x);
     
-    [a,b ]= uvwToab(vInB);
+    [Vt,a,b ]= uvw2mab(vInB);
     V = vecnorm(vInB);
     rho = rhoFromAlt(ned(3));
     alphaDeg = a*c.RAD2DEG; betaDeg  = b*c.RAD2DEG;
