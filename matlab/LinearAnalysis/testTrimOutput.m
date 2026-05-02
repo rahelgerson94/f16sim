@@ -8,7 +8,7 @@ zStar = S.zStar;
 xStar=zStar(1:c.nStates);
 uStar=zStar(c.nStates+1:end);
 [vInB, wInBrad, qI2B, ned] = unpackStateVector(xStar);
-[a,b ]= uvwToab(vInB);
+[Vt,a,b ]= uvw2mab(vInB);
 alphaDeg = a*c.RAD2DEG; betaDeg  = b*c.RAD2DEG;
 V = vecnorm(vInB);
 rho = rhoFromAlt(-xStar(13));

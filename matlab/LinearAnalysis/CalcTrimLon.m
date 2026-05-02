@@ -37,8 +37,8 @@ classdef CalcTrimLon
         u = Z(self.nStates+1: end);
         assert(length(u)==self.nControls)
         xDot = getXdotFromZ(Z);
-        [u,w,q,theta,n,d] = unpackStateVectorLon(x);
-        [ud, wd, thetad, nd,dd] = unpackStateVectorLon(xDot);
+        [u,w,q,theta,n,d] = unpackStateVectorLonInB(x);
+        [ud, wd, thetad, nd,dd] = unpackStateVectorLonInB(xDot);
         [a,b] = uvw2ab([u,0,w]);
        
         Q = [xDot;

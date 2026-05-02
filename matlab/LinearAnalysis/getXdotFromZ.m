@@ -8,7 +8,7 @@ function [xDot,FaeroInB, MaeroInB] = getXdotFromZ(Z, params, aeroModel)
     assert(length(u) == 4);
     [vInB, wInB, qI2B, ned] = unpackStateVector(x);
     
-    [a,b ]= uvwToab(vInB);
+    [Vt,a,b ]= uvw2mab(vInB);
     V = vecnorm(vInB);
     rho = rhoFromAlt(-ned(3));
     alphaDeg = a*c.RAD2DEG; betaDeg  = b*c.RAD2DEG;

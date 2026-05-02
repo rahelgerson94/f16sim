@@ -1,38 +1,40 @@
 classdef CalcDerivsLon < handle
     properties
-        nStates = 6;
+        nStates = 6; nStatesLon = 4;
+        nControls = 2;
         F cell = cell(6,1); %obj.F{i}(args...)
         A (6,6) double;
-        B (2,6) double; % [ E T]
+        B (6,2) double; % [ E T]
         c struct;
         params struct;
         
         aeroModel ; 
-        deltaXlon (6,1) double;
+        deltaXwind (6,1) double;
         deltaUe (2,1) double;
         ue (2,1) double;  %equilibrium control vector
-        xe (6,1) double; %equilibrium state vector
-        x (6,1) double;  %current state vector
+        xeWind (6,1) double; %equilibrium state vector
+        xWind (6,1) double;  %current state vector
         Vt;
         alpha;
         theta; 
         q;
         xI;
         zI;
-        
+        VT_IDX = 1; ALF_IDX = 2; Q_IDX=3; TH_IDX =4;
         THROTTLE_IDX=2; ELEVATOR_IDX=1;
+        MAX_THRUST = 5000; %lbf 
     end
 
     methods
-        function self = CalcDerivsLon(xe, ue)
+        function self = CalcDerivsLon(xeWind, ue)
             self.nStates = 6;
             self.A = zeros(self.nStates, self.nStates);
-            self.B = zeros(2,self.nStates);
+            self.B = zeros(self.nStates, self.nControls);
             c = getConstants(); self.c = c;
             self.params = getVehicleParams(self.c);
             
             self.reset();
-            self.populateFunctionVector();
+            self.populateFunctionVectorInB();
             self.aeroModel =  AeroModel(fullfile(fileparts(mfilename('fullpath')), '..', 'AeroModel', 'data'), ...
                 '', ... 
                 self.params.Sref, ...
@@ -41,19 +43,20 @@ classdef CalcDerivsLon < handle
 
             
             self.ue = ue; %[del_e, del_t]
-            self.xe = xe;
-
+            self.xeWind = xeWind;
+            self.toSI();
+            
             self.deltaUe = 0.3*ue;
-            self.deltaXlon = 0.3*xe; 
+            self.deltaXwind = 0.3*xeWind; 
             self.checkXlon();
             self.checkDeltaUe()
-            self.Vt = xe(1);
-            self.alpha = xe(2);
-            self.q = xe(3);
-            self.theta = xe(4);
-            self.xI = xe(5);
-            self.zI = xe(6);
-            self.x = xe;
+            self.Vt = xeWind(self.VT_IDX);
+            self.alpha = xeWind(self.ALF_IDX);
+            self.q = xeWind(self.Q_IDX);
+            self.theta = xeWind(self.TH_IDX);
+            self.xI = xeWind(5);
+            self.zI = xeWind(6);
+            self.xWind = xeWind;
             
         end
         function checkXlon(self)
@@ -61,22 +64,55 @@ classdef CalcDerivsLon < handle
             SMALL_ANGLE_RATE = 10;%deg
             SMALL_VELOCITY=30; %ft / s
             c = self.c;
-            for i =1:4
-                if self.deltaXlon(i) == 0
+            for i =1:self.nStatesLon
+                if self.deltaXwind(i) == 0
                     switch i
                         case 1
-                            self.deltaXlon(i) = SMALL_VELOCITY*c.M2FT; 
+                            self.deltaXwind(i) = SMALL_VELOCITY*c.M2FT; 
                         case 2
-                            self.deltaXlon(i) = SMALL_ANGLE*c.DEG2RAD; 
+                            self.deltaXwind(i) = SMALL_ANGLE*c.DEG2RAD; 
                         case 3
-                            self.deltaXlon(i)  = SMALL_ANGLE_RATE*c.DEG2RAD;
+                            self.deltaXwind(i)  = SMALL_ANGLE_RATE*c.DEG2RAD;
                         case 4
-                            self.deltaXlon(i)  = SMALL_ANGLE*c.DEG2RAD;
+                            self.deltaXwind(i)  = SMALL_ANGLE*c.DEG2RAD;
                     end%switch
                 end%if
                 end%for
         end%funciton
+        function toSI(self)
+            c = self.c;
+            self.xeWind(self.ALF_IDX) = self.xeWind(self.ALF_IDX)*c.DEG2RAD;
+            self.xeWind(self.TH_IDX) = self.xeWind(self.TH_IDX)*c.DEG2RAD;
+            self.xeWind(self.VT_IDX) = self.xeWind(self.VT_IDX)*c.FT2M;
+            self.xeWind(self.Q_IDX) = self.xeWind(self.Q_IDX)*c.DEG2RAD;
+        end
+        function xWindEnglish = toEnglish(self, x)
+            c = self.c;
+            xWindEnglish = zeros(self.nStates,1);
+            
+            xWindEnglish(self.ALF_IDX) = x(self.ALF_IDX)*1/c.DEG2RAD;
+            xWindEnglish(self.TH_IDX) = x(self.TH_IDX)*1/c.DEG2RAD;
+            xWindEnglish(self.VT_IDX) = x(self.VT_IDX)*1/c.FT2M;
+            xWindEnglish(self.Q_IDX) = x(self.Q_IDX)*1/c.DEG2RAD;
+          end
 
+        function printDeltaX(self)
+            deltaXWindEnglish = self.toEnglish(self.deltaXwind);
+            fprintf("[ΔVt    Δα    Δθ    Δq] = [%.2f   %.2f     %.2f     %.2f ]\n", deltaXWindEnglish(1), deltaXWindEnglish(2),deltaXWindEnglish(3), deltaXWindEnglish(4));
+        end
+        function printXe(self)
+                xeWindEnglish = self.toEnglish(self.xeWind);
+                fprintf("[Vt α θ q] = [%.2f   %.2f     %.2f     %.2f ]\n", xeWindEnglish(1), xeWindEnglish(2), xeWindEnglish(3),xeWindEnglish(4));
+
+        end
+        function printUe(self)
+                fprintf("[δ_e δ_t] = [%.2f     %.2f ]\n", self.ue(1), self.ue(2));
+
+        end
+        function printDeltaUe(self)
+                fprintf("[Δδ_e    Δδ_t] = [%.2f      %.2f  ]\n", self.deltaUe(1), self.deltaUe(2));
+
+        end
         function checkDeltaUe(self)
             if self.deltaUe(self.THROTTLE_IDX) == 0
                 self.deltaUe(self.THROTTLE_IDX) = 0.3;
@@ -87,17 +123,17 @@ classdef CalcDerivsLon < handle
         end
        
         function setInitialState(self, xe)
-            self.xe = xe;
-            self.x = xe;
+            self.xeWind = xe;
+            self.xWind = xe;
         end
         function reset(self)
             self.A = zeros(self.nStates, self.nStates);
-            self.B = zeros(2,self.nStates);
+            self.B = zeros(self.nStates, self.nControls);
         end
-        function  [ FaeroInB, MaeroInB]  = getAeroFM(self, x,u)
-                [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
+        function  [ FaeroInB, MaeroInB]  = getAeroFMInB(self, x,u)
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
                 vInB = [uBody; 0;wBody];
-                [a,b ]= uvwToab(vInB);
+                [~,a,b ]= uvw2mab(vInB);
                 alphaDeg = a*self.c.RAD2DEG; 
                 V = vecnorm(vInB);
                 
@@ -110,7 +146,28 @@ classdef CalcDerivsLon < handle
                     rho,...
                     [0; u(1); 0; u(2) ]);
         end
-        function populateFunctionVector(self)
+
+        function  [ FaeroInW, MaeroInW]  = getAeroFMInW(self, x,u)
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
+                
+                vInB = [uBody; 0;wBody];
+                [Vt,a,b ]= uvw2mab(vInB);
+                alphaDeg = a*self.c.RAD2DEG; 
+                V = vecnorm(vInB);
+                
+                rho = rhoFromAlt(-d);
+               [ FaeroInB, MaeroInB] = self.aeroModel.getAeroFM( ...
+                   alphaDeg, ...
+                    0, ...
+                    V,  ...
+                    [0,q,0], ...
+                    rho,...
+                    [0; u(1); 0; u(2) ]);
+            FaeroInW = body2wind(FaeroInB, a, 0); 
+            MaeroInW = body2wind(MaeroInB, a, 0);
+                end
+
+        function populateFunctionVectorInB(self)
             c = self.c;
             
             m = self.params.mass;
@@ -120,31 +177,31 @@ classdef CalcDerivsLon < handle
             function uDot = f1(x, u)
                 fProp = zeros(3,1);
                 mProp = zeros(3,1);
-                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-               [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
+                 [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
+               [ FaeroInB, MaeroInB] = self.getAeroFMInB(x,u);
                 uDot = (FaeroInB(1) + fProp(1))/m - c.g*sin(theta) - q*wBody;
             end
 
             function wDot = f2(x,u)
                 fProp = zeros(3,1);
                 mProp = zeros(3,1);
-                [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-                [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
+                [ FaeroInB, MaeroInB] = self.getAeroFMInB(x,u);
                 wDot = (FaeroInB(3) + fProp(3))/m + c.g*cos(theta) + q*uBody;
             end
 
             function qDot = f3(x,u)
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
-                [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-                [ FaeroInB, MaeroInB] = self.getAeroFM(x,u);
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
+                [ FaeroInB, MaeroInB] = self.getAeroFMInB(x,u);
                 qDot = (MaeroInB(2) + mProp(2))/Iyy;
             end
 
             function thetaDot = f4(x,u)
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
-                [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
                 
                 thetaDot = q;
             end
@@ -152,17 +209,90 @@ classdef CalcDerivsLon < handle
             function xDotI = f5(x,u)
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
-                [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
                 
-                xDotI = uBody*cos(theta) + wBody*sin(theta);
+                xDotI = uBody*cos(theta) + wBody*sin(theta); 
             end
 
             function zDotI = f6(x,u)
                  fProp = zeros(3,1);
                 mProp = zeros(3,1);
-                [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
+                [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
                 
                 zDotI = -uBody*sin(theta) + wBody*cos(theta);
+            end
+
+            self.F = {@f1; @f2; @f3; @f4; @f5; @f6};
+        end
+
+        function populateFunctionVectorInW(self)
+            c = self.c;
+            
+            m = self.params.mass;
+            Iyy = self.params.Iyy;
+
+            
+            function VtDot = f1(x, u)
+                fProp = zeros(3,1);
+                mProp = zeros(3,1);
+                 [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
+               [ FaeroInW, MaeroInW] = self.getAeroFMInW(x,u);
+                
+               
+                Ft = cos(alpha)*self.MAX_THRUST*u(self.THROTTLE_IDX);
+                %TODO: UNIT TEST THIS! make sure this matches the output of
+                %the body state derivates adter the appropriate
+                %transformations, or simply make a transformation function 
+                % to go from state deriv in b ody to state deriv in wind
+           
+                VtDot = (1/m)*Ft*cos(alpha) - FaeroInW(c.DRAG_IDX)/m - c.g*sin(theta - alpha);
+                
+            end
+
+            function alphaDot = f2(x,u)
+                fProp = zeros(3,1);
+
+                mProp = zeros(3,1);
+                [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
+               [ FaeroInW, MaeroInW] = self.getAeroFMInW(x,u);
+               Ft = cos(alpha)*self.MAX_THRUST*u(self.THROTTLE_IDX);
+                alphaDot = -1/(m*Vt)*(Ft*sin(alpha) + FaeroInW(c.LIFT_IDX) + c.g*sin(theta-alpha) ) + q;
+            end
+
+            function qDot = f3(x,u)
+                 fProp = zeros(3,1);
+                mProp = zeros(3,1);
+                [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
+               [ FaeroInW, MaeroInW] = self.getAeroFMInW(x,u);
+                %since yb is the rot axis from body to wind, 
+                % the 2nd component of a vector in the body frame remains 
+                %  unchanged, so no need to transform M into body
+                qDot = (MaeroInW(2) + mProp(2))/Iyy;
+            end
+
+            function thetaDot = f4(x,u)
+
+                [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
+                
+                thetaDot = q;
+            end
+
+            function xDotI = f5(x,u)
+                 fProp = zeros(3,1);
+                mProp = zeros(3,1);
+                [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
+                [u,v,w] = mab2uvw(Vt, a, b);
+                xDotI = u*cos(theta) + w*sin(theta); 
+
+                
+            end
+
+            function zDotI = f6(x,u)
+                 fProp = zeros(3,1);
+                mProp = zeros(3,1);
+                [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
+                [u,v,w] = mab2uvw(Vt, a, b);
+               zDotI = -u*sin(theta) + w*cos(theta);
             end
 
             self.F = {@f1; @f2; @f3; @f4; @f5; @f6};
@@ -172,8 +302,8 @@ classdef CalcDerivsLon < handle
             c = self.c;
             m = self.params.mass;
             Iyy = self.params.Iyy;
-            [uBody,wBody,q,theta,n,d] = unpackStateVectorLon(x);
-            [FaeroInB, MaeroInB] = self.getAeroFM(x, u_);
+            [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
+            [FaeroInB, MaeroInB] = self.getAeroFMInB(x, u_);
             fProp = zeros(3,1);
             mProp = zeros(3,1);
             xDotLon = zeros(self.nStates,1);
@@ -186,35 +316,48 @@ classdef CalcDerivsLon < handle
             xDotLon(6) = -uBody*sin(theta) + wBody*cos(theta);
         end
         function update(self, u)
-            xDot = self.calcDerivs(self.x, u);
-            self.x = self.x + xDot*self.c.dt;
+            xDot = self.calcDerivs(self.xWind, u);
+            self.xWind = self.xWind + xDot*self.c.dt;
         end
 
         function updateWithF(self,u)
             xDot = zeros(self.nStates,1);
             for i = 1:self.nStates
-                xDot(i) = self.F{i}(self.x, u);
+                xDot(i) = self.F{i}(self.xWind, u);
             end
-            self.x = self.x + xDot*self.c.dt;
+            self.xWind = self.xWind + xDot*self.c.dt;
         end
         function x = getState(self)
-            x = self.x;
+            x = self.xWind;
         end
         function setDeltaVariables(self, deltaXlon)
-            self.deltaXlon = deltaXlon;
+            self.deltaXwind = deltaXlon;
         end
 
         function populateA(self)
-            deltaX = zeros(self.nStates,1);
-            for i = 1: length(self.F)
-                for j = 1:length(self.xe)
-                    deltaX(j) = self.deltaXlon(j);
+            for i = 1: self.nStatesLon
+                for j = 1:self.nStatesLon
+                    deltaXj= self.deltaXwind(j);
                     
                     fi = self.F{i};
-                    n = fi(self.xe +deltaX(j) , self.ue ) - fi(self.xe - deltaX(j) , self.ue );
-                    self.A(i,j) = n/(2*self.deltaXlon(j));
+                    n = fi(self.xeWind +deltaXj, self.ue ) - fi(self.xeWind - deltaXj , self.ue );
+                    self.A(i,j) = n/(2*deltaXj);
                 end
             end 
         end
+
+        function populateB(self)
+            for i = 1: self.nStatesLon
+                for j = 1:self.nControls
+                    
+                    deltaUj = self.deltaUe(j);
+                    fi = self.F{i};
+                    n = fi(self.xeWind, self.ue +  deltaUj ) - fi(self.xeWind ,self.ue -deltaUj );
+                    %fprintf("%d, %d\n", i,j);
+                    self.B(i,j) = n/(2*deltaUj);
+                end
+            end 
+        end
+
     end %methods
 end %classdef
