@@ -219,31 +219,31 @@ classdef AeroModel < handle
 
             if alphaDeg < min(self.alpha1range) || alphaDeg > max(self.alpha1range)
                 alphaDeg = clamp(alphaDeg, min(self.alpha1range), max(self.alpha1range));
-                warning("alphaDeg exceeds range (%.2f). clamping ...\n", alphaTmp);
+                %warning("alphaDeg exceeds range (%.2f). clamping ...\n", alphaTmp);
             end
 
             if betaDeg < min(self.beta1range) || betaDeg > max(self.beta1range)
                 betaDeg = clamp(betaDeg, min(self.beta1range), max(self.beta1range));
-                warning("betaDeg exceeds range (%.2f). clamping ...\n", betaTmp);
+                %warning("betaDeg exceeds range (%.2f). clamping ...\n", betaTmp);
             end
 
             if e < min(self.dh1range) || e > max(self.dh1range)
                 e = clamp(e, min(self.dh1range), max(self.dh1range));
-                warning("ele exceeds range (%.2f). clamping ...\n", eleTmp);
+                %warning("ele exceeds range (%.2f). clamping ...\n", eleTmp);
             end
 
             aMin = 0;
             aMax = 30;
             if a < aMin || a > aMax
                 a = clamp(a, aMin, aMax);
-                warning("ail exceeds range (%.2f). clamping ...\n", ailTmp);
+                %warning("ail exceeds range (%.2f). clamping ...\n", ailTmp);
             end
 
             rMin = 0;
             rMax = 30;
             if r < rMin || r > rMax
                 r = clamp(r, rMin, rMax);
-                fprintf("rud exceeds range (%.2f). clamping ...\n", rudTmp);
+                %warning("rud exceeds range (%.2f). clamping ...\n", rudTmp);
             end
         end
         function updateCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)

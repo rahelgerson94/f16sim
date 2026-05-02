@@ -28,8 +28,17 @@ end
 if abs(w_ - w) > 0.01
     fprintf("error in w_: w = %.2f\n",  w_);
 end 
+%% test wind2body
+Vt = [vecnorm(vInB); 0; 0];
+vInB_act = wind2body(Vt, alpha, 0);
+labels = {"u", "v", "w"};
+for i = 1:3
+    if abs(vInB(i) - vInB_act(i) ) > 0.01
+    fprintf("%s error: u = %.2f ft/s\n", labels{i},  vInB_act(i)*c.FT2M);
+    end
+end 
 
-%% test with non zero beta 
+%% test uvw2mab with non zero beta 
 V = 100*c.FT2M;
 vinB =V* [0.5; 0.86; 0];
 [Vt,a, b] = uvw2mab(vinB);
@@ -37,7 +46,7 @@ vinB =V* [0.5; 0.86; 0];
 bExp = 60*c.DEG2RAD;
 alfExp = 0;
 
-
+Vexp = V;
 if abs(bExp - b) > TOL
     fprintf("β error: β = %.2f deg\n", b*c.RAD2DEG);
 end
