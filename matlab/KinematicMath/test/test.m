@@ -1,13 +1,16 @@
 
 TOL = 0.01;
 u = 4; w = -2; v = 0;
+alphaExpected = 30.0;
 vInB = [u; v; w];
-alpha = atan(w/u);
+alpha = atan2(w,u);
 c= getConstants();
 alphaDeg = alpha*c.RAD2DEG;
 
 vInW = body2wind(vInB, alpha, 0);
-
+if abs(alphaDeg - alphaExpected ) > 0.11
+    fprintf("α ≠ 0, α = %.2f\n",  alphaDeg);
+end 
 if abs(vInW(2) - v ) > 0.01
     fprintf("v ≠ 0, v = %.2f\n",  vInW(2));
 end 

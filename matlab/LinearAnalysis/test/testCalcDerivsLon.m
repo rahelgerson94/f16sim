@@ -50,7 +50,8 @@ end
         plotStatesLonInW(time, VT, ALPHA, Q, THETA, N,D);
  end
  if plotInB
-     [U,W,Q,TH, N,D]  = unpackXlonInB(X_LON_IN_B);
+     %[U,W,Q,TH, N,D]  = unpackXlonInB(X_LON_IN_B); 
+      [U,W,Q,TH, N,D]  = unpackXlonInWAndConvert2B(X_LON_IN_W, test);
      plotStatesLonInB(time, U,W,Q,TH, N,D);
  end
 
@@ -68,3 +69,14 @@ U = XlonInB(:, 1); W = XlonInB(:, 2);
 Q = XlonInB(:, 3); TH = XlonInB(:, 4);
 N = XlonInB(:, 5); D = XlonInB(:, 6);
 end
+
+function [U,W,Q,THETA, N,D] = unpackXlonInWAndConvert2B(XlonInW, calcDerivObj)
+% Split the longitudinal state history into scalar traces for plotting.
+    VT = XlonInW(:, calcDerivObj.VT_IDX);        ALPHA = XlonInW(:, calcDerivObj.ALF_IDX);
+    Q = XlonInW(:, calcDerivObj.Q_IDX);           THETA = XlonInW(:, calcDerivObj.TH_IDX);
+    N = XlonInW(:, 5);                          D = XlonInW(:, 6);
+
+    U = VT.*cos(ALPHA);
+    W = VT.*sin(ALPHA);
+end
+
