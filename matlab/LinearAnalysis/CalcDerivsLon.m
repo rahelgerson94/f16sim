@@ -23,7 +23,10 @@ classdef CalcDerivsLon < handle
         zI;
         VT_IDX = 1; ALF_IDX = 2; Q_IDX=3; TH_IDX =4;
         THROTTLE_IDX=2; ELEVATOR_IDX=1;
-        MAX_THRUST = 5000; %lbf 
+
+        %fudged up number per the NASA report on pg 93,
+        % for an alt of 10,000 ft and mach 0.2
+        MAX_THRUST = 15700; %lbf 
     end
 
     methods
@@ -72,7 +75,7 @@ classdef CalcDerivsLon < handle
                 if self.deltaXwind(i) == 0
                     switch i
                         case 1
-                            self.deltaXwind(i) = SMALL_VELOCITY*c.M2FT; 
+                            self.deltaXwind(i) = SMALL_VELOCITY*c.FT2M; 
                         case 2
                             self.deltaXwind(i) = SMALL_ANGLE*c.DEG2RAD; 
                         case 3
@@ -360,13 +363,16 @@ classdef CalcDerivsLon < handle
             end
         end
         function populateA(self)
+            
             for i = 1: self.nStatesLon
                 for j = 1:self.nStatesLon
-                    deltaXj= self.deltaXwind(j);
+                    deltaXj = zeros(self.nStates,1);
+                    deltaXj(j) = self.deltaXwind(j);
+                    
                     
                     fi = self.FinW{i};
                     n = fi(self.xeWind +deltaXj, self.ue ) - fi(self.xeWind - deltaXj , self.ue );
-                    self.A(i,j) = n/(2*deltaXj);
+                    self.A(i,j) = n/(2*self.deltaXwind(j));
                 end
             end 
         end
