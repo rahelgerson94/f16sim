@@ -134,7 +134,7 @@ classdef State < handle
            if vecnorm(vInB) < 1e-12
                 a = 0; b = 0;
            else
-             [a,b] = uvwToab(vInB);
+             [Vt, a,b] = uvw2mab(vInB);
            end
             W = self.c.g*self.params.mass;
            FgInB =  Quaternion.rotateVectorByQuaternion(qI2B, [0,0,W])';
@@ -155,7 +155,7 @@ classdef State < handle
       % function dState = getDeriv(self, u)
       %      dState = zeros(self.nStates,1);
       %     [vInB, wInB, qI2B] = self.unpack();
-      %        [a,b ]= uvwToab(vInB);
+      %        [Vt, a,b ]= uvw2mab(vInB);
       %       V = vecnorm(vInB);
       %       rho = rhoFromAlt(-self.d);
       %      [ FaeroInB, MaeroInB] = self.aeroModel.getAeroFM( ...
