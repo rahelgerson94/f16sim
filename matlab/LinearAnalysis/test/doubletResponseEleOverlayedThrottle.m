@@ -26,6 +26,8 @@ MOMENTS_IN_B = zeros(SIM_DURATION_SAMPLES,3);
 
 ET = zeros(SIM_DURATION_SAMPLES, test.nControls);
 VTs = {}; ALPHAS = {}; Qs={}; THETAS = {}; Ns={}; Ds={};
+M_AEROs={}; F_AEROs={};responseLabels = {"elevator", "throttle"};
+
 %begin loop
 subscripts = {'e', 't'};
 for controlIdx = 1:2
@@ -55,7 +57,7 @@ for controlIdx = 1:2
         FORCES_IN_B(sampleIdx,:) = wind2body(f, test.alpha, 0);
         MOMENTS_IN_B(sampleIdx,:) = wind2body(m,test.alpha, 0);
     end
-    
+    F_AEROs{controlIdx}=FORCES_IN_B; M_AEROs{controlIdx} = MOMENTS_IN_B;
     [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(X_LON_IN_W, test);
     VTs{controlIdx}=VT; ALPHAS{controlIdx} = ALPHA; Qs{controlIdx} = Q; THETAS{controlIdx}=THETA; Ns{controlIdx} = N; Ds{controlIdx} = D;
      plotScalar(time, ET(:,CTRL_INP_IDX), sprintf("δ_%s", subscripts{CTRL_INP_IDX}));
@@ -64,8 +66,8 @@ end
 
 
  plotStatesLonInWresponse2eleAndThrOverlayed(time, VTs, ALPHAS, Qs, THETAS, Ns,Ds);
- plotVector3(time, FORCES_IN_B, "Faero");
- plotVector3(time, MOMENTS_IN_B, "Maero");
+ plotNvector3s(time, F_AEROs, responseLabels, "Faero");
+ plotNvector3s(time, M_AEROs, responseLabels, "Maero");
  
  function [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
     % Split the longitudinal state history into scalar traces for plotting.

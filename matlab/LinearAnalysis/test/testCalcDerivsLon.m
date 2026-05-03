@@ -10,10 +10,10 @@ f16NominalTrim; % get xe, ue into the workspace
 cd(currentDir);
 test = CalcDerivsLon(xe, ue);
 dt = c.dt;
-plotInB = true;
+plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 2;
+SIM_DURATION = 8;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);

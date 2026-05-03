@@ -1,4 +1,4 @@
-
+close all;
 % Run project setup from the matlab root so this test works from any folder.
 testDir = fileparts(mfilename('fullpath'));
 matlabRoot = fullfile(testDir, '..', '..');
@@ -8,13 +8,13 @@ c = getConstants();
 f16NominalTrim; % get xe, ue into the workspace
 cd(currentDir);
 test = CalcDerivsLon(xe, ue);
-CTRL_INP_IDX = test.THROTTLE_IDX;
-
+CTRL_INP_IDX = 1;
+CTRL_DEFLECTION_AMPLITUDES = [5, 0.6];
 dt = c.dt;
-plotInB = true;
+plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 2;
+SIM_DURATION = 4;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
@@ -24,14 +24,14 @@ X_LON_IN_W = zeros(SIM_DURATION_SAMPLES,6);
 X_LON_IN_B = zeros(SIM_DURATION_SAMPLES,6);
 FORCES_IN_B = zeros(SIM_DURATION_SAMPLES,3);
 MOMENTS_IN_B = zeros(SIM_DURATION_SAMPLES,3);
-ELE_DEFLECTION_DEG=5.0; %degrees
+
 ET = zeros(SIM_DURATION_SAMPLES, test.nControls);
 
 ET = getDoublet(SIM_DURATION_SAMPLES, ...
     STEP_DURATION_SAMPLES, ...
-    test.THROTTLE_IDX, ...
+    CTRL_INP_IDX, ...
     ue , ...
-    .6, ...
+    CTRL_DEFLECTION_AMPLITUDES(CTRL_INP_IDX), ...
     test);
 for i = 1:SIM_DURATION_SAMPLES
     u=ET(i,:);
@@ -48,7 +48,7 @@ for i = 1:SIM_DURATION_SAMPLES
 end
 
 
- 
+
  if plotInW
      [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(X_LON_IN_W, test);
         plotStatesLonInW(time, VT, ALPHA, Q, THETA, N,D);
