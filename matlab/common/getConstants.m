@@ -8,9 +8,10 @@ c = struct();
 % ---------- Math ----------
 c.PI = 3.141592653589793;
 
-% ---------- Gravity ----------
+% ---------- constants ----------
 c.g = 9.80665;  % m/s^2
-
+c.MACH1_FT_S = 1125.328; % speed of sound = 1125.328 feet per second 
+c.MACH1_M_S = 343; % speed of sound = 343 meters per second 
 % ---------- Mass ----------
 c.SLUG2KG = 14.5939;
 c.KG2SLUG = 1.0 / c.SLUG2KG;

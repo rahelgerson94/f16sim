@@ -26,7 +26,7 @@ classdef CalcDerivsLon < handle
 
         %fudged up number per the NASA report on pg 93,
         % for an alt of 10,000 ft and mach 0.2
-        MAX_THRUST = 15700; %lbf 
+        MAX_THRUST = 16860; %lbf 
     end
 
     methods
@@ -366,6 +366,10 @@ classdef CalcDerivsLon < handle
             
             for i = 1: self.nStatesLon
                 for j = 1:self.nStatesLon
+                    %reinstanitate a vector of zeroes each time, 
+                    % and assign the jth element 
+                    % we need it to be vector of the same size as 
+                    % deltaXwind because it gets added to deltaXwind  
                     deltaXj = zeros(self.nStates,1);
                     deltaXj(j) = self.deltaXwind(j);
                     
@@ -380,16 +384,18 @@ classdef CalcDerivsLon < handle
         function populateB(self)
             for i = 1: self.nStatesLon
                 for j = 1:self.nControls
-                    
-                    deltaUj = self.deltaUe(j);
+                    deltaUj = zeros(self.nControls, 1);
+                    deltaUj(j) = self.deltaUe(j);
                     fi = self.FinW{i};
                     n = fi(self.xeWind, self.ue +  deltaUj ) - fi(self.xeWind ,self.ue -deltaUj );
                     %fprintf("%d, %d\n", i,j);
-                    self.B(i,j) = n/(2*deltaUj);
+                    self.B(i,j) = n/(2* self.deltaUe(j));
                 end
             end 
         end
+
         function [u,w,q,theta,n,d] = getStateInB(self)
+            %TODO: this is currently not functional, find out why 
             vInB = wind2body([self.xWind(self.VT_IDX);0;0], ...
                 self.xWind(self.ALF_IDX), 0 );
             [u,v,w] = unpackVector3(vInB);
@@ -398,7 +404,16 @@ classdef CalcDerivsLon < handle
             n = self.xWind(5);
             d = self.xWind(6);
         end
-
-
+        function printAinEnglishUnits(self)
+            c= self.c;
+            Aenglish = zeros(6,6);
+            Aenglish(:, self.VT_IDX) = self.A(:,self.VT_IDX) *c.M2FT;
+            Aenglish(:, self.ALF_IDX) = self.A(:,self.ALF_IDX) *c.RAD2DEG;
+            Aenglish(:, self.Q_IDX) = self.A(:,self.Q_IDX) *c.RAD2DEG;
+            Aenglish(:, self.TH_IDX) = self.A(:,self.TH_IDX) *c.RAD2DEG;
+            Aenglish(:, 5) = self.A(:,5) *c.M2FT;
+            Aenglish(:, 6) = self.A(:,6) *c.M2FT;
+            printMatrix(Aenglish(1:self.nStatesLon, 1:self.nStatesLon));
+        end
     end %methods
 end %classdef

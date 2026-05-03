@@ -1,9 +1,10 @@
 
 % Run project setup from the matlab root so this test works from any folder.
-testDir = fileparts(mfilename('fullpath'));
-matlabRoot = fullfile(testDir, '..', '..');
+linearAnalysisDir = fileparts(mfilename('fullpath'));
+matlabRoot = fullfile(linearAnalysisDir, '..');
 currentDir = pwd;
-cd(matlabRoot); setupProject; cd(fullfile(matlabRoot, 'LinearAnalysis'));
+cd(matlabRoot); setupProject; 
+cd(fullfile(matlabRoot, 'LinearAnalysis'));
 c = getConstants();
 f16NominalTrim; % get xe, ue into the workspace
 cd(currentDir);
@@ -19,3 +20,9 @@ printMatrix(test.A(1:4, 1:4));
 %test.printAinEnglishUnits();
 printMatrix(test.B(1:4,:)) %B is 6,2
 
+
+figure;
+poles = eig(test.A);
+zeros = []; gain = 1;
+sys = zpk(zeros, poles, gain);
+pzmap(sys);grid on
