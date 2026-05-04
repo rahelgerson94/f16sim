@@ -236,30 +236,23 @@ classdef CalcDerivsLon < handle
 
             
             function VtDot = f1(x, u)
-                fProp = zeros(3,1);
-                mProp = zeros(3,1);
                  [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
                [ FaeroInW, MaeroInW] = self.getAeroFMInW(x,u);
                 
                
-                Ft = cos(alpha)*self.MAX_THRUST*u(self.THROTTLE_IDX);
-                %TODO: UNIT TEST THIS! make sure this matches the output of
-                %the body state derivates adter the appropriate
-                %transformations, or simply make a transformation function 
-                % to go from state deriv in b ody to state deriv in wind
-           
-                VtDot = (1/m)*Ft*cos(alpha) - FaeroInW(c.DRAG_IDX)/m - c.g*sin(theta - alpha);
+                Ft = self.MAX_THRUST*u(self.THROTTLE_IDX);           
+                VtDot = Ft*cos(alpha)/m- FaeroInW(c.DRAG_IDX)/m - c.g*sin(theta - alpha);
                 
             end
 
             function alphaDot = f2(x,u)
-                fProp = zeros(3,1);
-
-                mProp = zeros(3,1);
                 [Vt,alpha,q,theta,n,d] = unpackStateVectorLonInW(x);
                [ FaeroInW, MaeroInW] = self.getAeroFMInW(x,u);
-               Ft = cos(alpha)*self.MAX_THRUST*u(self.THROTTLE_IDX);
-                alphaDot = -1/(m*Vt)*(Ft*sin(alpha) + FaeroInW(c.LIFT_IDX) + c.g*sin(theta-alpha) ) + q;
+               Ft = self.MAX_THRUST*u(self.THROTTLE_IDX);
+                alphaDot = 1/(m*Vt)*(-Ft*sin(alpha) ...
+                                                   -FaeroInW(c.LIFT_IDX))...
+                                                    +c.g*cos(theta-alpha)/Vt...
+                                                    + q;
             end
 
             function qDot = f3(x,u)
