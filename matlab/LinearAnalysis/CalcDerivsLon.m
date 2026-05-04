@@ -21,7 +21,11 @@ classdef CalcDerivsLon < handle
         q;
         xI;
         zI;
-        VT_IDX = 1; ALF_IDX = 2; Q_IDX=3; TH_IDX =4;
+        VT_IDX = 1; 
+        TH_IDX =2;
+        ALF_IDX = 3; 
+        Q_IDX=4; 
+        
         THROTTLE_IDX=2; ELEVATOR_IDX=1;
 
         %fudged up number per the NASA report on pg 93,
@@ -105,19 +109,19 @@ classdef CalcDerivsLon < handle
 
         function printDeltaX(self)
             deltaXWindEnglish = self.toEnglish(self.deltaXwind);
-            fprintf("[ΔVt    Δα    Δθ    Δq] = [%.2f   %.2f     %.2f     %.2f ]\n", deltaXWindEnglish(1), deltaXWindEnglish(2),deltaXWindEnglish(3), deltaXWindEnglish(4));
+            fprintf("[ΔVt  Δθ Δα  Δq] = [%.2f   %.2f     %.2f     %.2f ]\n", deltaXWindEnglish(self.VT_IDX), deltaXWindEnglish(2),deltaXWindEnglish(self.ALF_IDX), deltaXWindEnglish(self.Q_IDX));
         end
         function printXe(self)
                 xeWindEnglish = self.toEnglish(self.xeWind);
-                fprintf("[Vt α θ q] = [%.2f   %.2f     %.2f     %.2f ]\n", xeWindEnglish(1), xeWindEnglish(2), xeWindEnglish(3),xeWindEnglish(4));
+                fprintf("[Vt θ α  q] = [%.2f   %.2f     %.2f     %.2f ]\n", xeWindEnglish(self.VT_IDX), xeWindEnglish(2), xeWindEnglish(self.ALF_IDX),xeWindEnglish(self.Q_IDX));
 
         end
         function printUe(self)
-                fprintf("[δ_e δ_t] = [%.2f     %.2f ]\n", self.ue(1), self.ue(2));
+                fprintf("[δ_e δ_t] = [%.2f     %.2f ]\n", self.ue(self.ELEVATOR_IDX), self.ue(self.THROTTLE_IDX));
 
         end
         function printDeltaUe(self)
-                fprintf("[Δδ_e    Δδ_t] = [%.2f      %.2f  ]\n", self.deltaUe(1), self.deltaUe(2));
+                fprintf("[Δδ_e    Δδ_t] = [%.2f      %.2f  ]\n", self.deltaUe(self.ELEVATOR_IDX), self.deltaUe(self.THROTTLE_IDX));
 
         end
         function checkDeltaUe(self)
@@ -290,8 +294,8 @@ classdef CalcDerivsLon < handle
                 [u,v,w] = mab2uvw(Vt, a, 0);
                 zDotI = -u*sin(theta) + w*cos(theta);
             end
-
-            self.FinW = {@f1; @f2; @f3; @f4; @f5; @f6};
+            %            Vt    th  alf    q
+            self.FinW = {@f1; @f4; @f2; @f3; @f5; @f6};
         end
 
         function xDotLon = calcDerivsInB(self, x, u_)
@@ -347,10 +351,10 @@ classdef CalcDerivsLon < handle
              % will take in self, x, frame
             %%
             if frame == strcmp(frame, 'w')
-                self.Vt = self.xWind(1);
-                self.alpha = self.xWind(2);
-                self.q = self.xWind(3);
-                self.theta = self.xWind(4);
+                self.Vt = self.xWind(self.VT_IDX);
+                self.alpha = self.xWind(self.TH_IDX);
+                self.q = self.xWind(self.Q_IDX);
+                self.theta = self.xWind(self.TH_IDX);
                 self.xI = self.xWind(5);
                 self.zI = self.xWind(6);
             end

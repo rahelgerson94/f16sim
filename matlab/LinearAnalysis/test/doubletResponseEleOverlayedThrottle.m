@@ -58,7 +58,7 @@ for controlIdx = 1:2
         MOMENTS_IN_B(sampleIdx,:) = wind2body(m,test.alpha, 0);
     end
     F_AEROs{controlIdx}=FORCES_IN_B; M_AEROs{controlIdx} = MOMENTS_IN_B;
-    [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(X_LON_IN_W, test);
+    [VT, THETA, ALPHA, Q,N,D] = unpackXlonInW(X_LON_IN_W, test);
     VTs{controlIdx}=VT; ALPHAS{controlIdx} = ALPHA; Qs{controlIdx} = Q; THETAS{controlIdx}=THETA; Ns{controlIdx} = N; Ds{controlIdx} = D;
      plotScalar(time, ET(:,CTRL_INP_IDX), sprintf("δ_%s", subscripts{CTRL_INP_IDX}));
 
@@ -69,7 +69,7 @@ end
  plotNvector3s(time, F_AEROs, responseLabels, "Faero");
  plotNvector3s(time, M_AEROs, responseLabels, "Maero");
  
- function [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
+ function [VT, THETA, ALPHA, Q, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
     % Split the longitudinal state history into scalar traces for plotting.
     VT = XlonInW(:, calcDerivObj.VT_IDX);        ALPHA = XlonInW(:, calcDerivObj.ALF_IDX);
     Q = XlonInW(:, calcDerivObj.Q_IDX);           THETA = XlonInW(:, calcDerivObj.TH_IDX);

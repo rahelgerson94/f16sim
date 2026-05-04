@@ -50,7 +50,7 @@ end
 
 
  if plotInW
-     [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(X_LON_IN_W, test);
+     [VT,  THETA,ALPHA, Q, N,D] = unpackXlonInW(X_LON_IN_W, test);
         plotStatesLonInW(time, VT, ALPHA, Q, THETA, N,D);
  end
  if plotInB
@@ -63,7 +63,7 @@ end
  plotVector3(time, MOMENTS_IN_B, "Maero");
  subscripts = {'e', 't'};
  plotScalar(time, ET(:,CTRL_INP_IDX), sprintf("δ_%s", subscripts{CTRL_INP_IDX}));
- function [VT, ALPHA, Q, THETA, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
+ function [VT, THETA, ALPHA, Q, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
     % Split the longitudinal state history into scalar traces for plotting.
     VT = XlonInW(:, calcDerivObj.VT_IDX);        ALPHA = XlonInW(:, calcDerivObj.ALF_IDX);
     Q = XlonInW(:, calcDerivObj.Q_IDX);           THETA = XlonInW(:, calcDerivObj.TH_IDX);

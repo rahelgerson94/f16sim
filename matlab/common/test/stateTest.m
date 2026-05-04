@@ -2,7 +2,7 @@ c = getConstants();
 params = getVehicleParams(c);
 dt = c.dt;
 AIL_IDX = 1;
-ELE_IDX = 2;
+ELEVATOR_IDX = 2;
 RUD_IDX = 3;
 %% simulation parameters
 SIM_DURATION = 5;
@@ -22,7 +22,7 @@ s.setInitialState(ned0 = [0; 0; -1000*c.FT2M], ...
 time = linspace(0,SIM_DURATION ,SIM_DURATION_SAMPLES );
 X = zeros(SIM_DURATION_SAMPLES,13);
 AERT = zeros(4,SIM_DURATION_SAMPLES);
-AERT(ELE_IDX, ...
+AERT(ELEVATOR_IDX, ...
     APPLICATION_START_IDX:APPLICATION_START_IDX+STEP_DURATION_SAMPLES) = 15; %degrees 
 
 aeromodel =  AeroModel(dataDir, ...
