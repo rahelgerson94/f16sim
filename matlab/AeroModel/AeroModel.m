@@ -133,11 +133,11 @@ classdef AeroModel < handle
             h5File = fullfile(self.tabledir, 'F16AeroData.h5');
 
             % Read independent variables
-            alpha1 = h5read(h5File, '/alpha1');
-            alpha2 = h5read(h5File, '/alpha2');
-            beta1  = h5read(h5File, '/beta1');
-            dh1    = h5read(h5File, '/dh1');
-            dh2    = h5read(h5File, '/dh2');
+            alpha1 = h5read(h5File, '/alpha1');     %-25, -10, ... 0, ..10, 0,25
+            alpha2 = h5read(h5File, '/alpha2');     %-25, -10, ... 0, ..10, 0,45
+            beta1  = h5read(h5File, '/beta1');       %-30, 30
+            dh1    = h5read(h5File, '/dh1');          %-25, -10, 0, 10, 25
+            dh2    = h5read(h5File, '/dh2');          %-25,0,25
             
             % Force coefficients
             self.Cx = createAeroFunction(h5read(h5File,'/_Cx'),alpha1,beta1,dh1);
@@ -247,6 +247,64 @@ classdef AeroModel < handle
             end
         end
         function updateCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
+            
+            aileron = aert(1);
+            ele = aert(2);
+            rudder = aert(3);
+            throttle = aert(4);
+            [alphaDeg, betaDeg, aileron, ele, rudder] = self.checkInputs(alphaDeg, betaDeg, aileron, ele, rudder);
+            self.alpha = alphaDeg;
+            self.beta = betaDeg;
+            self.controlVec = [aileron; ele; rudder; aert(4)];
+            self.pqr = wB_rad(:);
+
+            p = wB_rad(1);
+            q = wB_rad(2);
+            r = wB_rad(3);
+            self.qBar = 0.5 * rho * V^2;
+
+            b2V = self.Bref  / (2 * V);
+            c2V = self.cref / (2 * V);
+            xcgRef = self.xCgRef;
+           
+
+            cmDamping = AeroBMC();
+            cmDamping.Cl = b2V * (p * self.Clp(alphaDeg) +  self.Clr(alphaDeg)*r);
+            cmDamping.Cm = c2V * q * self.Cmq(alphaDeg);
+            cmDamping.Cn = b2V *( r *  self.Cnp(alphaDeg) + r * self.Cnr(alphaDeg));
+
+            cfTotal = AeroBFC();
+            
+            cy0=self.Cy(alphaDeg, betaDeg);
+           
+            cfTotal.Cx = self.Cx(alphaDeg, betaDeg, ele) + c2V * q* self.Cxq(alphaDeg);
+            cfTotal.Cy =cy0 ...
+                + b2V * (self.Cyp(alphaDeg)*p +  self.Cyr(alphaDeg)*r) ...
+                + self.scaleFiniteDeflection(self.Cy_a20(alphaDeg, betaDeg), cy0, aileron, 20) ...
+                + self.scaleFiniteDeflection(self.Cy_r30(alphaDeg, betaDeg), cy0, rudder, 30) ;
+            cfTotal.Cz = self.Cz(alphaDeg, betaDeg, ele) +  (c2V * q * self.Czq(alphaDeg));
+            cmTotal = AeroBMC();
+            cmTotal.Cl = self.Cl(alphaDeg, betaDeg, ele) ...
+                + cmDamping.Cl ...
+                + self.deltaClbeta(alphaDeg) * betaDeg...            
+                + self.scaleFiniteDeflection(self.Cl_a20(alphaDeg, betaDeg), self.Cl(alphaDeg, betaDeg, 0), aileron, 20) ...
+                + self.scaleFiniteDeflection(self.Cl_r30(alphaDeg, betaDeg), self.Cl(alphaDeg, betaDeg, 0), rudder, 30) ;
+            cmTotal.Cm = self.Cm(alphaDeg, betaDeg, ele) * self.eta_el(ele) ...
+                + cfTotal.Cz * (xcgRef) ...
+                + self.deltaCm(alphaDeg) ...
+                + cmDamping.Cm;
+            cmTotal.Cn = self.Cn(alphaDeg, betaDeg, ele) ...
+                + cmDamping.Cn ...
+                - cfTotal.Cy *(xcgRef) ...
+                + self.deltaCnbeta(alphaDeg) * betaDeg...
+                + self.scaleFiniteDeflection(self.Cn_a20(alphaDeg, betaDeg), self.Cn(alphaDeg, betaDeg, 0), aileron, 20) ...
+                + self.scaleFiniteDeflection(self.Cn_r30(alphaDeg, betaDeg), self.Cn(alphaDeg, betaDeg, 0), rudder, 30);
+            self.CfTotal = cfTotal;
+            self.CmDamping = cmDamping;
+            self.CmTotal = cmTotal ;
+        end
+        
+        function [cfTotal, cmTotal]=getCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
             
             aileron = aert(1);
             ele = aert(2);

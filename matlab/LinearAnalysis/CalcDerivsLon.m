@@ -294,7 +294,7 @@ classdef CalcDerivsLon < handle
                 [u,v,w] = mab2uvw(Vt, a, 0);
                 zDotI = -u*sin(theta) + w*cos(theta);
             end
-            %            Vt    th  alf    q
+            %                   Vt    th  alf        q
             self.FinW = {@f1; @f4; @f2; @f3; @f5; @f6};
         end
 
