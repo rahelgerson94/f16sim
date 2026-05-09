@@ -96,6 +96,8 @@ classdef CalcDerivsLon < handle
             self.xeWind(self.TH_IDX) = xInW(self.TH_IDX)*c.DEG2RAD;
             self.xeWind(self.VT_IDX) = xInW(self.VT_IDX)*c.FT2M;
             self.xeWind(self.Q_IDX) =xInW(self.Q_IDX)*c.DEG2RAD;
+            self.xeWind(5) =xInW(5)*c.FT2M;
+            self.xeWind(6) =xInW(6)*c.FT2M;
         end
         function xWindEnglish = toEnglish(self, x)
             c = self.c;
@@ -401,16 +403,15 @@ classdef CalcDerivsLon < handle
             n = self.xWind(5);
             d = self.xWind(6);
         end
-        function printAinEnglishUnits(self)
+        function Aenglish = getAinEnglishUnits(self)
             c= self.c;
             Aenglish = zeros(6,6);
-            Aenglish(:, self.VT_IDX) = self.A(:,self.VT_IDX) *c.M2FT;
-            Aenglish(:, self.ALF_IDX) = self.A(:,self.ALF_IDX) *c.RAD2DEG;
-            Aenglish(:, self.Q_IDX) = self.A(:,self.Q_IDX) *c.RAD2DEG;
-            Aenglish(:, self.TH_IDX) = self.A(:,self.TH_IDX) *c.RAD2DEG;
-            Aenglish(:, 5) = self.A(:,5) *c.M2FT;
-            Aenglish(:, 6) = self.A(:,6) *c.M2FT;
-            printMatrix(Aenglish(1:self.nStatesLon, 1:self.nStatesLon));
+            S = zeros(6,6);
+            %                  Vt               θ                   α               q   
+            stateUnits = [c.M2FT, c.RAD2DEG, c.RAD2DEG,c.RAD2DEG, c.M2FT, c.M2FT];
+            S = diag(stateUnits);
+            Aenglish = S*self.A * S^-1;
+            %printMatrix(Aenglish(1:self.nStatesLon, 1:self.nStatesLon));
         end
     end %methods
 end %classdef

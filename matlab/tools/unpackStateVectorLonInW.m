@@ -1,4 +1,4 @@
-function [Vt, alpha, q, theta, n,d] = unpackStateVectorLonInB(X)
+function [Vt, alpha, q, theta, n,d] = unpackStateVectorLonInW(X)
     Vt = X(1);
     theta = X(2);
     alpha = X(3);

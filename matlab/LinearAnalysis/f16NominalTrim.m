@@ -18,7 +18,7 @@ u = VtFt*cos(alpha);
 w = VtFt*sin(alpha);
 xe = [u; w; q; theta; 0;-h];
 
-xeWind = [VtFt alphaDeg  q thetaDeg 0 -h]';
+xeWind = [VtFt thetaDeg alphaDeg  q 0 -h]';
 fprintf("α (deg): %.2f \n", atan2(w,u)*c.RAD2DEG);
 fprintf("(u, w) = %.2f , %.2f\n", u*c.M2FT, w*c.M2FT );
 fprintf("ue : [δ_e, δ_t] = [%.2f   %.2f]\n", ue)

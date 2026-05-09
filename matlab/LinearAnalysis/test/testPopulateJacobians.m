@@ -22,9 +22,9 @@ T = [1 0 0 0;
         0 0 1 0;
         0 1 0 0;
         0 0 0 1];
-fprintf("ΔVt  Δα  Δθ Δq \n");
-StevensA = T*test.A(1:4, 1:4)*T;
+fprintf("ΔVt     Δα     Δθ     Δq \n");
+Aenglish = test.getAinEnglishUnits();
+StevensA = T*Aenglish(1:4, 1:4)*T;
 printMatrix(StevensA, 4);
-%test.printAinEnglishUnits();
 printMatrix(test.B(1:4,:)) %B is 6,2
 
