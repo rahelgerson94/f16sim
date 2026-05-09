@@ -2,6 +2,7 @@
 c= getConstants();
 matlabRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 dataDir = fullfile(matlabRoot, 'AeroModel', 'data');
+paramsPath = fullfile(matlabRoot, 'common', 'getVehicleParams.m');
 addpath(matlabRoot);
 addpath(fullfile(matlabRoot, 'AeroModel'));
 addpath(fullfile(matlabRoot, 'tools'));
@@ -14,8 +15,9 @@ aert = [0; ue(1); 0; ue(2)];
 hM = -xeWind(6)*c.FT2M;
 
 c = getConstants();
-params = getVehicleParams(c);
-aeromodel = AeroModel(dataDir, '', params.Sref, params.bref, params.cref);
+params = getVehicleParams();
+% Pass only paths; AeroModel owns params construction.
+aeromodel = AeroModel(dataDir, paramsPath);
 
 N = 100;
 alphaVec = linspace(-25, 25, N);

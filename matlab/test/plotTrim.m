@@ -1,5 +1,5 @@
 global V_FT_S; global ALT_FT; global params; global c;
-params = getVehicleParams(c);
+params = getVehicleParams();
 
 %declarations
 dt = 0.01;

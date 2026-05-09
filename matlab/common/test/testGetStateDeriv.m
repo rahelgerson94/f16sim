@@ -1,15 +1,12 @@
 global V_FT_S; global ALT_FT; global params; global c;
 c=getConstants();
-params = getVehicleParams(c);
+params = getVehicleParams();
+paramsPath = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'getVehicleParams.m');
+matlabRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+dataDir = fullfile(matlabRoot, 'AeroModel', 'data');
 global aeroModel;
 %declarations
 dt = c.dt;
-SIM_DURATION = 5;
-
-AIL_IDX = 1;
-ELEVATOR_IDX = 2;
-RUD_IDX = 3;
-%% simulation parameters
 SIM_DURATION = 5;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 APPLICATION_START_TIME = 2; 
@@ -18,12 +15,12 @@ APPLICATION_START_IDX = ceil(APPLICATION_START_TIME/dt);
 STEP_DURATION = 1;
 STEP_DURATION_SAMPLES = ceil(STEP_DURATION/dt);
 
-
+AIL_IDX = 1;
+ELEVATOR_IDX = 2;
+RUD_IDX = 3;
 aeroModel =  AeroModel(dataDir, ...
-    '', ... %cfgDir
-    params.Sref, ...
-    params.bref, ...
-    params.cref);
+    paramsPath);
+%% simulation parameters
 
 %% initial values
 x0 = [1000; 0; 50;

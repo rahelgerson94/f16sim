@@ -7,18 +7,18 @@
 
 
 c=getConstants();
-params = getVehicleParams(c);
+params = getVehicleParams();
+paramsPath = fullfile(fileparts(mfilename('fullpath')), '..', 'common', 'getVehicleParams.m');
 V_FT_S = 502;
 ALT_FT = 1000;
+% Pass only paths; AeroModel owns params construction.
 aeroModel =  AeroModel(dataDir, ...
-    '', ... %cfgDir
-    params.Sref, ...
-    params.bref, ...
-    params.cref);
+    paramsPath);
 %% initial values
 
 initialGuess = 1;
-s = State(c.dt, getVehicleParams(c));
+% Pass the params function path so State builds params internally.
+s = State(c.dt, paramsPath);
 
 
 %% ------------ BEGIN ------------

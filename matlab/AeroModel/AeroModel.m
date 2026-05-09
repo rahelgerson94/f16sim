@@ -1,13 +1,7 @@
 classdef AeroModel < handle
     properties
         tabledir
-        cfgPath
-
-        %refence quantities
-        Sref (1,1) double = 0
-        Bref (1,1) double = 0
-        cref (1,1) double = 0
-        xCgRef (1,1) double = 0
+        params;
         %aero state
         mach (1,1) double = 0
         altitude (1,1) double = 0
@@ -102,13 +96,11 @@ classdef AeroModel < handle
     end
 
     methods
-        function self = AeroModel(tabledir, cfgPath, Sref, bref, cref)
+        function self = AeroModel(tabledir, paramsPath)
             self.tabledir = tabledir;
-            self.cfgPath = cfgPath;
-            self.Sref = Sref;
-            self.Bref = bref;
-            self.cref = cref;
-            self.xCgRef = 0.35*self.cref;
+            % Add the params function folder so AeroModel owns params construction.
+            addpath(fileparts(paramsPath));
+            self.params = getVehicleParams();
             self.bindCoefficients();
         end
 
@@ -252,6 +244,8 @@ classdef AeroModel < handle
             ele = aert(2);
             rudder = aert(3);
             throttle = aert(4);
+            % No LEF input is carried in aert yet, so use the neutral normalized value.
+            deltaLef = 1;
             [alphaDeg, betaDeg, aileron, ele, rudder] = self.checkInputs(alphaDeg, betaDeg, aileron, ele, rudder);
             self.alpha = alphaDeg;
             self.beta = betaDeg;
@@ -263,9 +257,9 @@ classdef AeroModel < handle
             r = wB_rad(3);
             self.qBar = 0.5 * rho * V^2;
 
-            b2V = self.Bref  / (2 * V);
-            c2V = self.cref / (2 * V);
-            xcgRef = self.xCgRef;
+            b2V = self.params.geometry.bref  / (2 * V);
+            c2V = self.params.geometry.cref / (2 * V);
+            xcgRef = self.params.geometry.xcgr * self.params.geometry.cref;
            
 
             cmDamping = AeroBMC();
@@ -322,9 +316,9 @@ classdef AeroModel < handle
             r = wB_rad(3);
             self.qBar = 0.5 * rho * V^2;
 
-            b2V = self.Bref  / (2 * V);
-            c2V = self.cref / (2 * V);
-            xcgRef = self.xCgRef;
+            b2V = self.params.geometry.bref  / (2 * V);
+            c2V = self.params.geometry.cref / (2 * V);
+            xcgRef = self.params.geometry.xcgr * self.params.geometry.cref;
            
 
             cmDamping = AeroBMC();
@@ -366,8 +360,8 @@ classdef AeroModel < handle
         function [F,M] = getAeroFM(self, alphaDeg, betaDeg, V,  wB_rad, rho, aert)
             self.updateCoeffs(alphaDeg, betaDeg, V,wB_rad, rho, aert);
 
-            F = self.CfTotal.dimensionalize(self.Sref, V, rho);
-            M = self.CmTotal.dimensionalize(self.Sref, self.Bref, self.cref, V, rho);
+            F = self.CfTotal.dimensionalize(self.params.geometry.Sref, V, rho);
+            M = self.CmTotal.dimensionalize(self.params.geometry.Sref, self.params.geometry.bref, self.params.geometry.cref, V, rho);
         end
     end %methods
 

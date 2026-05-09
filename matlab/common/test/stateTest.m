@@ -1,5 +1,8 @@
 c = getConstants();
-params = getVehicleParams(c);
+params = getVehicleParams();
+paramsPath = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'getVehicleParams.m');
+matlabRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+dataDir = fullfile(matlabRoot, 'AeroModel', 'data');
 dt = c.dt;
 AIL_IDX = 1;
 ELEVATOR_IDX = 2;
@@ -15,27 +18,26 @@ STEP_DURATION_SAMPLES = ceil(STEP_DURATION/dt);
 
 
 % initialize State and time, force, moment vectors
-s = State(dt, getVehicleParams(c));
+% Pass the params function path so State builds params internally.
+s = State(dt, paramsPath);
 s.setInitialState(ned0 = [0; 0; -1000*c.FT2M], ...
                   vInB0 = [1000; 0; 50]*c.FT2M, ...
                   qI2B0 = [1; 0; 0; 0]);
 time = linspace(0,SIM_DURATION ,SIM_DURATION_SAMPLES );
 X = zeros(SIM_DURATION_SAMPLES,13);
 AERT = zeros(4,SIM_DURATION_SAMPLES);
-AERT(ELEVATOR_IDX, ...
+AERT(AIL_IDX, ...
     APPLICATION_START_IDX:APPLICATION_START_IDX+STEP_DURATION_SAMPLES) = 15; %degrees 
 
+% Pass only paths; AeroModel owns params construction.
 aeromodel =  AeroModel(dataDir, ...
-    '', ... %cfgDir
-    params.Sref, ...
-    params.bref, ...
-    params.cref);
+    paramsPath);
 
 
 x0 = s.toVector();
 MpropInB = zeros(3,1);
 FpropInB =  zeros(3,1);
-W = params.mass*params.g;
+W = params.mass*c.g;
 x = x0;
 forces=zeros(SIM_DURATION_SAMPLES,3);
 moments=zeros(SIM_DURATION_SAMPLES,3);

@@ -8,7 +8,9 @@ cd(fullfile(matlabRoot, 'LinearAnalysis'));
 c = getConstants();
 f16NominalTrim; % get xe, ue into the workspace
 cd(currentDir);
-test = CalcDerivsLon(xeWind, ue);
+paramsPath = fullfile(matlabRoot, 'common', 'getVehicleParams.m');
+% Pass the params function path so CalcDerivsLon builds params internally.
+test = CalcDerivsLon(xeWind, ue, paramsPath);
 test.printDeltaUe();
 test.printDeltaX();
 dt = c.dt;

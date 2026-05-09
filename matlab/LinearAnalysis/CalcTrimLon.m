@@ -18,11 +18,10 @@ classdef CalcTrimLon
             xGuess)
 
             self.params = vehicleParams;
+            paramsPath = fullfile(fileparts(mfilename('fullpath')), '..', 'common', 'getVehicleParams.m');
+            % Pass the params function path so AeroModel builds params internally.
             self.aeroModel =  AeroModel(dataDir, ...
-                    '', ... %cfgDir
-                    params.Sref, ...
-                    params.bref, ...
-                    params.cref);
+                    paramsPath);
             self.xGuess = xGuess;
             self.theta = thetaDeg*c.RAD2DEG ;
             self.alphaDeg = alphaDeg*c.RAD2DEG ;

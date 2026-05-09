@@ -27,24 +27,23 @@ classdef State < handle
     end
 
     methods
-        function self = State( dt, vehicleParams, options)
+        function self = State( dt, paramsPath, options)
             arguments
                 dt; 
-                vehicleParams;
+                paramsPath;
                 options.dataDir = fullfile(fileparts(mfilename('fullpath')), '..', 'AeroModel', 'data');
             end
             self.dt = dt;
             self.nStates = 13;
             self.nControls = 4;
-            self.params = vehicleParams;
+            % Add the params function folder so State owns params construction.
+            addpath(fileparts(paramsPath));
+            self.params = getVehicleParams();
             self.reset();
             self.c = getConstants();
-            %# Use the AeroModel data directory found relative to this State class file.
+            %# Use local paths so AeroModel can construct its own vehicle params.
             self.aeroModel =   AeroModel(options.dataDir, ...
-                    '', ... %cfgDir
-                    vehicleParams.Sref, ...
-                    vehicleParams.bref, ...
-                    vehicleParams.cref);
+                    paramsPath);
         end
 
         function reset(self)
@@ -141,8 +140,8 @@ classdef State < handle
 
 
            dState(1:3)= (FaeroInB(:) + FgInB(:) + FpropInB(:) )/self.params.mass - cross(wInB,vInB);
-           HinB = self.params.I*wInB;
-           dState(4:6) = self.params.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
+           HinB = self.params.geometry.I*wInB;
+           dState(4:6) = self.params.geometry.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
 
 
           dState(7:10) =Quaternion.computeDerivative(qI2B, wInB );
@@ -174,8 +173,8 @@ classdef State < handle
       %      FpropInB = zeros(3,1); %TODO: make engine model
       %      MpropInB = zeros(3,1);%TODO: make engine model
       %      dState(1:3)= (FaeroInB(:) + FgInB(:) + FpropInB(:) )/self.params.mass - cross(wInB,vInB);
-      %      HinB = self.params.I*wInB;
-      %      dState(4:6) = self.params.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
+      %      HinB = self.params.geometry.I*wInB;
+      %      dState(4:6) = self.params.geometry.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
       % 
       % 
       %       dState(7:10) =Quaternion.computeDerivative(qI2B, wInB );

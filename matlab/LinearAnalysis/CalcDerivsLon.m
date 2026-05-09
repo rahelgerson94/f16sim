@@ -34,20 +34,20 @@ classdef CalcDerivsLon < handle
     end
 
     methods
-        function self = CalcDerivsLon(xeWind, ue)
+        function self = CalcDerivsLon(xeWind, ue, paramsPath)
             self.nStates = 6;
             self.A = zeros(self.nStates, self.nStates);
             self.B = zeros(self.nStates, self.nControls);
             c = getConstants(); self.c = c;
-            self.params = getVehicleParams(self.c);
+            addpath(fileparts(paramsPath));
+            self.params = getVehicleParams();
+
             
             self.reset();
             
+            % Pass only paths; AeroModel owns its vehicle params construction.
             self.aeroModel =  AeroModel(fullfile(fileparts(mfilename('fullpath')), '..', 'AeroModel', 'data'), ...
-                '', ... 
-                self.params.Sref, ...
-                self.params.bref, ...
-                self.params.cref);
+                paramsPath);
 
             
             self.ue = ue; %[del_e, del_t]
@@ -180,7 +180,7 @@ classdef CalcDerivsLon < handle
             c = self.c;
             
             m = self.params.mass;
-            Iyy = self.params.Iyy;
+            Iyy = self.params.geometry.Iyy;
 
             
             function uDot = f1(x, u)
@@ -238,7 +238,7 @@ classdef CalcDerivsLon < handle
             c = self.c;
             
             m = self.params.mass;
-            Iyy = self.params.Iyy;
+            Iyy = self.params.geometry.Iyy;
 
             
             function VtDot = f1(x, u)
@@ -303,7 +303,7 @@ classdef CalcDerivsLon < handle
         function xDotLon = calcDerivsInB(self, x, u_)
             c = self.c;
             m = self.params.mass;
-            Iyy = self.params.Iyy;
+            Iyy = self.params.geometry.Iyy;
             [uBody,wBody,q,theta,n,d] = unpackStateVectorLonInB(x);
             [FaeroInB, MaeroInB] = self.getAeroFMInB(x, u_);
             fProp = zeros(3,1);
