@@ -304,7 +304,7 @@ classdef AeroModel < handle
             self.CmTotal = cmTotal ;
         end
         
-        function [cfTotal, cmTotal]=getCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
+        function [cfTotal, cmTotal, cmDamping]=getCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
             
             aileron = aert(1);
             ele = aert(2);
