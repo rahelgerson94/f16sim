@@ -2,7 +2,7 @@ function [xDot,FaeroInB, MaeroInB] = getXdotFromZ(Z, params, aeroModel)
     global c; 
     global params;
     global aeroModel;
-   
+ 
     x = Z(1:c.nStates); 
     u = Z(c.nStates+1: end);
     assert(length(u) == 4);

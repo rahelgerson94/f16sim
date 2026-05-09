@@ -1,4 +1,17 @@
 classdef AeroModel < handle
+% %
+% -------- SIGN CONVENTIONS ----- 
+% for some god knows reason, NASA defines positive deflections as those
+% which cause negative moments about the body axes. 
+% since this is counterintuitive, 
+% in updateCoeffs( ), the aert commands will be multiplied by -1
+% NASA's sign conventions are given in pages 2-6
+% δe > 0 produces nose down pitch: Δδe > 0 produces My < 0
+%        
+%  δa > 0 produces left roll:              Δδa > 0 produces Mx < 0
+%           
+%  δr > 0 produces left yaw:              Δδr > 0 produces Mz < 0
+%%
     properties
         tabledir
         params;
@@ -238,20 +251,24 @@ classdef AeroModel < handle
                 %warning("rud exceeds range (%.2f). clamping ...\n", rudTmp);
             end
         end
-        function updateCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
+        function [cfTotal, cmTotal, cmDamping]= updateCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
+            % multiply by -1 so that positive control surface deflections 
+            % cause positive moments.
+            aert(1:3) = -1*aert(1:3);
             
             aileron = aert(1);
             ele = aert(2);
             rudder = aert(3);
             throttle = aert(4);
             % No LEF input is carried in aert yet, so use the neutral normalized value.
-            deltaLef = 1;
+            deltaLef = 0; deltaSb=0;
             [alphaDeg, betaDeg, aileron, ele, rudder] = self.checkInputs(alphaDeg, betaDeg, aileron, ele, rudder);
+
             self.alpha = alphaDeg;
             self.beta = betaDeg;
-            self.controlVec = [aileron; ele; rudder; aert(4)];
-            self.pqr = wB_rad(:);
 
+            self.pqr = wB_rad(:);
+            deltaLefRatio = ( self.params.limits.cs.lef - deltaLef)/self.params.limits.cs.lef;
             p = wB_rad(1);
             q = wB_rad(2);
             r = wB_rad(3);
@@ -259,7 +276,7 @@ classdef AeroModel < handle
 
             b2V = self.params.geometry.bref  / (2 * V);
             c2V = self.params.geometry.cref / (2 * V);
-            xcgRef = self.params.geometry.xcgr * self.params.geometry.cref;
+            xcgRef = self.params.geometry.xcgr ;
            
 
             cmDamping = AeroBMC();
@@ -269,25 +286,35 @@ classdef AeroModel < handle
 
             cfTotal = AeroBFC();
             
+            
+            deltaCxLef = self.Cx_lef(alphaDeg, betaDeg)- self.Cx(alphaDeg, betaDeg,0);
+            cfTotal.Cx = self.Cx(alphaDeg, betaDeg, ele) ...
+                            + (deltaCxLef)*(deltaLefRatio)...
+                            + c2V * q* (self.Cxq(alphaDeg) + self.deltaCxq_lef(alphaDeg)*(deltaLefRatio));
             cy0=self.Cy(alphaDeg, betaDeg);
-           
-            cfTotal.Cx = self.Cx(alphaDeg, betaDeg, ele) + c2V * q* self.Cxq(alphaDeg);
             cfTotal.Cy =cy0 ...
                 + b2V * (self.Cyp(alphaDeg)*p +  self.Cyr(alphaDeg)*r) ...
                 + self.scaleFiniteDeflection(self.Cy_a20(alphaDeg, betaDeg), cy0, aileron, 20) ...
                 + self.scaleFiniteDeflection(self.Cy_r30(alphaDeg, betaDeg), cy0, rudder, 30) ; 
-            cfTotal.Cz = self.Cz(alphaDeg, betaDeg, ele) +  self.Cz_lef(alphaDeg, betaDeg)*((1 - deltaLef)/self.params.limits.cs.lef) ...
-                        + c2V * q * (self.Czq(alphaDeg));
+
+            deltaCzLef    = self.Cz_lef(alphaDeg, betaDeg) - self.Cz(alphaDeg,betaDeg,0);
+            cfTotal.Cz = self.Cz(alphaDeg, betaDeg, ele) ...
+                        + deltaCzLef*(deltaLefRatio) ...
+                        + c2V * q * (self.Czq(alphaDeg) + self.deltaCzq_lef(alphaDeg)*deltaLefRatio);
             cmTotal = AeroBMC();
             cmTotal.Cl = self.Cl(alphaDeg, betaDeg, ele) ...
                 + cmDamping.Cl ...
                 + self.deltaClbeta(alphaDeg) * betaDeg...            
                 + self.scaleFiniteDeflection(self.Cl_a20(alphaDeg, betaDeg), self.Cl(alphaDeg, betaDeg, 0), aileron, 20) ...
                 + self.scaleFiniteDeflection(self.Cl_r30(alphaDeg, betaDeg), self.Cl(alphaDeg, betaDeg, 0), rudder, 30) ;
+            
+            deltaCmLef = self.Cm_lef(alphaDeg, betaDeg) - self.Cm(alphaDeg, betaDeg, 0);
             cmTotal.Cm = self.Cm(alphaDeg, betaDeg, ele) * self.eta_el(ele) ...
-                + cfTotal.Cz * (xcgRef) ...
+                + cfTotal.Cz * (xcgRef - 0) ...
                 + self.deltaCm(alphaDeg) ...
-                + cmDamping.Cm;
+                + deltaCmLef*(deltaLefRatio)...
+                + c2V * q*(self.Cmq(alphaDeg) + self.deltaCmq_lef(alphaDeg)*deltaLefRatio) ;
+                
             cmTotal.Cn = self.Cn(alphaDeg, betaDeg, ele) ...
                 + cmDamping.Cn ...
                 - cfTotal.Cy *(xcgRef) ...
@@ -299,64 +326,6 @@ classdef AeroModel < handle
             self.CmTotal = cmTotal ;
         end
         
-        function [cfTotal, cmTotal, cmDamping]=getCoeffs(self, alphaDeg, betaDeg, V, wB_rad, rho, aert)
-            
-            aileron = aert(1);
-            ele = aert(2);
-            rudder = aert(3);
-            throttle = aert(4);
-            [alphaDeg, betaDeg, aileron, ele, rudder] = self.checkInputs(alphaDeg, betaDeg, aileron, ele, rudder);
-            self.alpha = alphaDeg;
-            self.beta = betaDeg;
-            self.controlVec = [aileron; ele; rudder; aert(4)];
-            self.pqr = wB_rad(:);
-
-            p = wB_rad(1);
-            q = wB_rad(2);
-            r = wB_rad(3);
-            self.qBar = 0.5 * rho * V^2;
-
-            b2V = self.params.geometry.bref  / (2 * V);
-            c2V = self.params.geometry.cref / (2 * V);
-            xcgRef = self.params.geometry.xcgr * self.params.geometry.cref;
-           
-
-            cmDamping = AeroBMC();
-            cmDamping.Cl = b2V * (p * self.Clp(alphaDeg) +  self.Clr(alphaDeg)*r);
-            cmDamping.Cm = c2V * q * self.Cmq(alphaDeg);
-            cmDamping.Cn = b2V *( r *  self.Cnp(alphaDeg) + r * self.Cnr(alphaDeg));
-
-            cfTotal = AeroBFC();
-            
-            cy0=self.Cy(alphaDeg, betaDeg);
-           
-            cfTotal.Cx = self.Cx(alphaDeg, betaDeg, ele) + c2V * q* self.Cxq(alphaDeg);
-            cfTotal.Cy =cy0 ...
-                + b2V * (self.Cyp(alphaDeg)*p +  self.Cyr(alphaDeg)*r) ...
-                + self.scaleFiniteDeflection(self.Cy_a20(alphaDeg, betaDeg), cy0, aileron, 20) ...
-                + self.scaleFiniteDeflection(self.Cy_r30(alphaDeg, betaDeg), cy0, rudder, 30) ;
-            cfTotal.Cz = self.Cz(alphaDeg, betaDeg, ele) +  (c2V * q * self.Czq(alphaDeg));
-            cmTotal = AeroBMC();
-            cmTotal.Cl = self.Cl(alphaDeg, betaDeg, ele) ...
-                + cmDamping.Cl ...
-                + self.deltaClbeta(alphaDeg) * betaDeg...            
-                + self.scaleFiniteDeflection(self.Cl_a20(alphaDeg, betaDeg), self.Cl(alphaDeg, betaDeg, 0), aileron, 20) ...
-                + self.scaleFiniteDeflection(self.Cl_r30(alphaDeg, betaDeg), self.Cl(alphaDeg, betaDeg, 0), rudder, 30) ;
-            cmTotal.Cm = self.Cm(alphaDeg, betaDeg, ele) * self.eta_el(ele) ...
-                + cfTotal.Cz * (xcgRef) ...
-                + self.deltaCm(alphaDeg) ...
-                + cmDamping.Cm;
-            cmTotal.Cn = self.Cn(alphaDeg, betaDeg, ele) ...
-                + cmDamping.Cn ...
-                - cfTotal.Cy *(xcgRef) ...
-                + self.deltaCnbeta(alphaDeg) * betaDeg...
-                + self.scaleFiniteDeflection(self.Cn_a20(alphaDeg, betaDeg), self.Cn(alphaDeg, betaDeg, 0), aileron, 20) ...
-                + self.scaleFiniteDeflection(self.Cn_r30(alphaDeg, betaDeg), self.Cn(alphaDeg, betaDeg, 0), rudder, 30);
-            self.CfTotal = cfTotal;
-            self.CmDamping = cmDamping;
-            self.CmTotal = cmTotal ;
-        end
-
         function [F,M] = getAeroFM(self, alphaDeg, betaDeg, V,  wB_rad, rho, aert)
             self.updateCoeffs(alphaDeg, betaDeg, V,wB_rad, rho, aert);
 

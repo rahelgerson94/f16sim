@@ -6,9 +6,9 @@
         %gravity acts in the dwon direction, so the 3rd component is
         %positive
         FgInB =  Quaternion.rotateVectorByQuaternion(qI2B, [0,0,W])'; 
-        HinB = params.I*wInB;
+        HinB = params.geometry.I*wInB;
         xDot(1:3)= (FaeroInB(:) + FgInB(:) + FpropInB(:) )/params.mass - cross(wInB,vInB);
-        xDot(4:6) = params.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
+        xDot(4:6) = params.geometry.I \ (MaeroInB(:) + MpropInB(:) - cross(wInB, HinB));
 
 
         xDot(7:10) = Quaternion.computeDerivative(qI2B, wInB );

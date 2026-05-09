@@ -5,7 +5,7 @@ matlabRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 dataDir = fullfile(matlabRoot, 'AeroModel', 'data');
 dt = c.dt;
 AIL_IDX = 1;
-ELEVATOR_IDX = 2;
+ELE_IDX = 2;
 RUD_IDX = 3;
 %% simulation parameters
 SIM_DURATION = 5;
@@ -26,7 +26,7 @@ s.setInitialState(ned0 = [0; 0; -1000*c.FT2M], ...
 time = linspace(0,SIM_DURATION ,SIM_DURATION_SAMPLES );
 X = zeros(SIM_DURATION_SAMPLES,13);
 AERT = zeros(4,SIM_DURATION_SAMPLES);
-AERT(AIL_IDX, ...
+AERT(ELE_IDX, ...
     APPLICATION_START_IDX:APPLICATION_START_IDX+STEP_DURATION_SAMPLES) = 15; %degrees 
 
 % Pass only paths; AeroModel owns params construction.

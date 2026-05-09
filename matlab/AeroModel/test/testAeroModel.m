@@ -34,7 +34,7 @@ CmDampingInB = zeros(N,3);
 for i = 1:N
     alpha = alphaVec(i);  dh = dhVec(i);
     rho =  rhoFromAlt(hM);
-    [cxStruct, cmStruct, cmDampingStruct] = aeromodel.getCoeffs(alpha, 0, Vt, wB_rad, rho, aert);
+    [cxStruct, cmStruct, cmDampingStruct] = aeromodel.updateCoeffs(alpha, 0, Vt, wB_rad, rho, aert);
 
     Cf=[cxStruct.Cx; cxStruct.Cy; cxStruct.Cz];
     Cm = [cmStruct.Cl; cmStruct.Cm; cmStruct.Cn];
@@ -62,5 +62,3 @@ nexttile;
 plot(alphaVec, CfinB(:,c.LIFT_IDX), "DisplayName", "C_z", "Color","blue",LineWidth=L); hold on;
 plot(alphaVec, CfinW(:,c.LIFT_IDX), "DisplayName", "C_L","Color","black", LineWidth=L); hold off;
 xlabel("α (deg)"); grid on; legend;
-
-tiledlayout(2,1);

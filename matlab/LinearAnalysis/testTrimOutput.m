@@ -2,7 +2,8 @@
 global V_FT_S; global ALT_FT; global params; global c;
 
 c = getConstants();
-params = getVehicleParams(c);
+params = getVehicleParams();
+paramsPath = fullfile(fileparts(mfilename('fullpath')), '..', 'common', 'getVehicleParams.m');
 S = load('zStar.mat');
 zStar = S.zStar;
 xStar=zStar(1:c.nStates);
@@ -13,10 +14,7 @@ alphaDeg = a*c.RAD2DEG; betaDeg  = b*c.RAD2DEG;
 V = vecnorm(vInB);
 rho = rhoFromAlt(-xStar(13));
 aeroModel =  AeroModel(dataDir, ...
-    '', ... %cfgDir
-    params.Sref, ...
-    params.bref, ...
-    params.cref);
+    paramsPath);
 %% initial values
 
 

@@ -8,12 +8,15 @@ c = getConstants();
 f16NominalTrim; % get xe, ue into the workspace
 
 cd(currentDir);
-test = CalcDerivsLon(xe, ue);
+paramsPath = fullfile(matlabRoot, 'common', 'getVehicleParams.m');
+% Pass the params function path so CalcDerivsLon builds params internally.
+test = CalcDerivsLon(xe, ue, paramsPath);
 dt = c.dt;
 plotInB = false;
 plotInW = true;
 %% simulation parameters
 SIM_DURATION = 8;
+APPLICATION_START_IDX = 1/dt;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
@@ -26,10 +29,13 @@ MOMENTS_IN_B = zeros(SIM_DURATION_SAMPLES,3);
 
 
 for i = 1:SIM_DURATION_SAMPLES
-    if i <= STEP_DURATION_SAMPLES
-        u = ue;
-    else
-        u = zeros(2,1);
+    if i < APPLICATION_START_IDX
+        u = [0 0];
+    elseif i >=APPLICATION_START_IDX &&  i < APPLICATION_START_IDX  + STEP_DURATION_SAMPLES
+        %u = ue;
+        u = [15 0];
+    else 
+        u = [0 0];
     end
     test.updateWithFinW(u);
     xInW = test.getStateInW()';
@@ -79,4 +85,3 @@ function [U,W,Q,THETA, N,D] = unpackXlonInWAndConvert2B(XlonInW, calcDerivObj)
     U = VT.*cos(ALPHA);
     W = VT.*sin(ALPHA);
 end
-
