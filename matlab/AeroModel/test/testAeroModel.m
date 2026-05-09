@@ -28,10 +28,11 @@ CfinB = zeros(N,3);
 CmInB = zeros(N,3);
 CfinW = zeros(N,3);
 CmInW = zeros(N,3);
+CmDampingInB = zeros(N,3);
 for i = 1:N
     alpha = alphaVec(i);  dh = dhVec(i);
     rho =  rhoFromAlt(hM);
-    [cxStruct, cmStruct] = aeromodel.getCoeffs(alpha, 0, Vt, wB_rad, rho, aert);
+    [cxStruct, cmStruct, cmDampingStruct] = aeromodel.getCoeffs(alpha, 0, Vt, wB_rad, rho, aert);
 
     Cf=[cxStruct.Cx; cxStruct.Cy; cxStruct.Cz];
     Cm = [cmStruct.Cl; cmStruct.Cm; cmStruct.Cn];
@@ -40,7 +41,7 @@ for i = 1:N
     CmInB(i,:)=Cm;
     % Convert the coefficient vectors with radians because body2wind uses sin/cos.
     alphaRad = alpha*c.DEG2RAD;
-    CfinW(i,:) = body2wind(Cf, alphaRad, 0);
+       CfinW(i,:) = body2wind(Cf, alphaRad, 0);
     % CmInW(i,:)= body2wind(Cm, alphaRad, 0);
     % Cd = -cos(alphaRad)*cxStruct.Cx + sin(alphaRad)*cxStruct.Cz;
     % Cl= sin(alphaRad)*cxStruct.Cx      + cos(alphaRad)*cxStruct.Cz;
@@ -59,3 +60,5 @@ nexttile;
 plot(alphaVec, CfinB(:,c.LIFT_IDX), "DisplayName", "C_z", "Color","blue",LineWidth=L); hold on;
 plot(alphaVec, CfinW(:,c.LIFT_IDX), "DisplayName", "C_L","Color","black", LineWidth=L); hold off;
 xlabel("α (deg)"); grid on; legend;
+
+tiledlayout(2,1);

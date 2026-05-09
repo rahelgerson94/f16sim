@@ -271,7 +271,7 @@ classdef AeroModel < handle
             cmDamping = AeroBMC();
             cmDamping.Cl = b2V * (p * self.Clp(alphaDeg) +  self.Clr(alphaDeg)*r);
             cmDamping.Cm = c2V * q * self.Cmq(alphaDeg);
-            cmDamping.Cn = b2V *( r *  self.Cnp(alphaDeg) + r * self.Cnr(alphaDeg));
+            cmDamping.Cn = b2V *( p *  self.Cnp(alphaDeg) + r * self.Cnr(alphaDeg));
 
             cfTotal = AeroBFC();
             
@@ -281,8 +281,9 @@ classdef AeroModel < handle
             cfTotal.Cy =cy0 ...
                 + b2V * (self.Cyp(alphaDeg)*p +  self.Cyr(alphaDeg)*r) ...
                 + self.scaleFiniteDeflection(self.Cy_a20(alphaDeg, betaDeg), cy0, aileron, 20) ...
-                + self.scaleFiniteDeflection(self.Cy_r30(alphaDeg, betaDeg), cy0, rudder, 30) ;
-            cfTotal.Cz = self.Cz(alphaDeg, betaDeg, ele) +  (c2V * q * self.Czq(alphaDeg));
+                + self.scaleFiniteDeflection(self.Cy_r30(alphaDeg, betaDeg), cy0, rudder, 30) ; 
+            cfTotal.Cz = self.Cz(alphaDeg, betaDeg, ele) +  self.Cz_lef(alphaDeg, betaDeg)*((1 - deltaLef)/self.params.limits.cs.lef) ...
+                        + c2V * q * (self.Czq(alphaDeg));
             cmTotal = AeroBMC();
             cmTotal.Cl = self.Cl(alphaDeg, betaDeg, ele) ...
                 + cmDamping.Cl ...
