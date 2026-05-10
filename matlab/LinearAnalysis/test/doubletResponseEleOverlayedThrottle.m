@@ -9,13 +9,13 @@ f16NominalTrim; % get xe, ue into the workspace
 cd(currentDir);
 paramsPath = fullfile(matlabRoot, 'common', 'getVehicleParams.m');
 % Pass the params function path so CalcDerivsLon builds params internally.
-test = CalcDerivsLon(xe, ue, paramsPath);
+test = CalcDerivsLon(xeInW, ue, paramsPath);
 CTRL_DEFLECTION_AMPLITUDES = [5, 0.6];
 dt = c.dt;
 plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 1;
+SIM_DURATION = 5;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
@@ -56,20 +56,18 @@ for controlIdx = 1:2
         
         X_LON_IN_B(sampleIdx,:) = test.getStateInB();
         [f,m] = test.getAeroFMInW( xInW, u);
-        FORCES_IN_B(sampleIdx,:) = wind2body(f, test.alpha, 0);
-        MOMENTS_IN_B(sampleIdx,:) = wind2body(m,test.alpha, 0);
+        FORCES_IN_B(sampleIdx,:) = -1*wind2body(f, test.alpha, 0);
+        MOMENTS_IN_B(sampleIdx,:) = -1*wind2body(m,test.alpha, 0);
     end
     F_AEROs{controlIdx}=FORCES_IN_B; M_AEROs{controlIdx} = MOMENTS_IN_B;
     [VT, THETA, ALPHA, Q,N,D] = unpackXlonInW(X_LON_IN_W, test);
     VTs{controlIdx}=VT; ALPHAS{controlIdx} = ALPHA; Qs{controlIdx} = Q; THETAS{controlIdx}=THETA; Ns{controlIdx} = N; Ds{controlIdx} = D;
-     plotScalar(time, ET(:,CTRL_INP_IDX), sprintf("δ_%s", subscripts{CTRL_INP_IDX}));
+    plotScalar(time, ET(:,CTRL_INP_IDX), sprintf("δ_%s", subscripts{CTRL_INP_IDX}));
 
 end
 
 
- plotStatesLonInWresponse2eleAndThrOverlayed(time, VTs, ALPHAS, Qs, THETAS, Ns,Ds);
- plotNvector3s(time, F_AEROs, responseLabels, "Faero");
- plotNvector3s(time, M_AEROs, responseLabels, "Maero");
+ plotStatesLonInWresponse2eleAndThrOverlayed(time, VTs, ALPHAS, Qs, THETAS, Ns,Ds, F_AEROs, M_AEROs);
  
  function [VT, THETA, ALPHA, Q, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
     % Split the longitudinal state history into scalar traces for plotting.

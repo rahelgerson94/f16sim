@@ -53,16 +53,13 @@ end
 
  if plotInW
      [VT,  THETA,ALPHA, Q, N,D] = unpackXlonInW(X_LON_IN_W, test);
-        plotStatesLonInW(time, VT, ALPHA, Q, THETA, N,D);
+        plotStatesLonInW(time, VT, ALPHA, Q, THETA, N,D, FORCES_IN_B, MOMENTS_IN_B);
  end
  if plotInB
      %[U,W,Q,TH, N,D]  = unpackXlonInB(X_LON_IN_B); 
       [U,W,Q,TH, N,D]  = unpackXlonInWAndConvert2B(X_LON_IN_W, test);
-     plotStatesLonInB(time, U,W,Q,TH, N,D);
+     plotStatesLonInB(time, U,W,Q,TH, N,D, FORCES_IN_B, MOMENTS_IN_B);
  end
-
- plotVector3(time, FORCES_IN_B, "Faero");
- plotVector3(time, MOMENTS_IN_B, "Maero");
  subscripts = {'e', 't'};
  plotScalar(time, ET(:,CTRL_INP_IDX), sprintf("δ_%s", subscripts{CTRL_INP_IDX}));
  function [VT, THETA, ALPHA, Q, N,D] = unpackXlonInW(XlonInW, calcDerivObj)
