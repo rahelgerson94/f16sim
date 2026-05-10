@@ -20,7 +20,7 @@ params = getVehicleParams();
 aeromodel = AeroModel(dataDir, paramsPath);
 
 N = 100;
-alphaVec = linspace(0, 40, N);
+alphaVec = linspace(0, 80, N);
 betaVec = linspace(-30, 30, N);
 dhVec = linspace(-25, 25, N);
  
@@ -43,15 +43,16 @@ for i = 1:N
     CmInB(i,:)=Cm;
     % Convert the coefficient vectors with radians because body2wind uses sin/cos.
     alphaRad = alpha*c.DEG2RAD;
-    CfinW(i,:) = -1*body2wind(Cf, alphaRad, 0);
     % multiply by -1 because D is along -xb,
     % C along -yb, L along -zb
-    % CmInW(i,:)= body2wind(Cm, alphaRad, 0);
+    CfinW(i,:) = -1*body2wind(Cf, alphaRad, 0);
+    CmInW(i,:)= -1*body2wind(Cm, alphaRad, 0);
 
+    
 
 end
 
-tiledlayout(1,2); L = 1.5;
+tiledlayout(1,3); L = 1.5;
 nexttile;
 % Plot against the full alpha sweep, not the last scalar alpha from the loop.
 plot(alphaVec, CfinB(:,c.DRAG_IDX), "DisplayName", "C_x", "Color","blue",LineWidth=L); hold on;
@@ -62,4 +63,10 @@ nexttile;
 % Compare body z-force coefficient with the wind-frame lift-axis coefficient.
 plot(alphaVec, CfinB(:,c.LIFT_IDX), "DisplayName", "C_z", "Color","blue",LineWidth=L); hold on;
 plot(alphaVec, CfinW(:,c.LIFT_IDX), "DisplayName", "C_L","Color","black", LineWidth=L); hold off;
+xlabel("α (deg)"); grid on; legend;
+
+nexttile;
+plot(alphaVec, CmInB(:,2), "DisplayName", "C_m (B)", "Color","black",LineWidth=L); hold on 
+plot(alphaVec, CmInW(:,2), "DisplayName", "C_m (W)", "Color","blue",LineWidth=L); hold on 
+
 xlabel("α (deg)"); grid on; legend;

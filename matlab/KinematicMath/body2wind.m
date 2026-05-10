@@ -13,7 +13,7 @@ function [vInW] = body2wind(vInB, alpha, beta)
     %TODO: VERIFY THIS IS CORRECT
     S2W =  [ cb     sb     0;
             -sb     cb     0
-             0       0    1 ];
+             0       0     1 ];
 
 vInW = S2W * B2S * vInB;
 
