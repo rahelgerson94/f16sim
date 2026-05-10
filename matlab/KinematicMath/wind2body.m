@@ -13,9 +13,9 @@ function [vInW] = wind2body(vInW, alpha, beta)
 
 
     %TODO: VERIFY THIS IS CORRECT
-    S2W =  [ cb 0   -sb;
-            0   1    0 
-            sb  0    cb];
+    S2W =  [ cb     sb     0;
+            -sb     cb     0
+             0       0    1 ];
     W2S = S2W';
 vInW = S2B * W2S * vInW;
 end
