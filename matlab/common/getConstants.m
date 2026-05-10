@@ -75,4 +75,10 @@ c.i_q  = c.i_wB + 1 + 3;
 c.i_rI = c.i_q +  1 + 4;
 
 c.DRAG_IDX = 1; c.LIFT_IDX = 3; c.Y_IDX=2;
+c.lon.VT_IDX = 1; 
+c.lon.TH_IDX =2;
+c.lon.ALF_IDX = 3; 
+c.lon.Q_IDX=4;
+c.lon.ELE_IDX = 1; 
+c.lon.THTL_IDX=2;
 end

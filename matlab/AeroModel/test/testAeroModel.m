@@ -8,11 +8,11 @@ addpath(fullfile(matlabRoot, 'AeroModel'));
 addpath(fullfile(matlabRoot, 'tools'));
 addpath(fullfile(matlabRoot, 'KinematicMath'));
 addpath(fullfile(matlabRoot, 'LinearAnalysis'));
-f16NominalTrim; %xe = [u; w; q; theta; 0;-h];  xeWind= [VtFt alphaDeg  q thetaDeg 0 -h]';
-Vt = xeWind(1)*c.FT2M;
-wB_rad = [0 ;  xeWind(3); 0];
+f16NominalTrim; %xe = [u; w; q; theta; 0;-h];  xeInW= [VtFt alphaDeg  q thetaDeg 0 -h]';
+Vt = xeInW(1)*c.FT2M;
+wB_rad = [0 ;  xeInW(3); 0];
 aert = [0; ue(1); 0; ue(2)];
-hM = -xeWind(6)*c.FT2M;
+hM = -xeInW(6)*c.FT2M;
 
 c = getConstants();
 params = getVehicleParams();

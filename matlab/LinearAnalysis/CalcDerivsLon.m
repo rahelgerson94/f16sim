@@ -13,7 +13,7 @@ classdef CalcDerivsLon < handle
         deltaXwind (6,1) double;
         deltaUe (2,1) double;
         ue (2,1) double;  %equilibrium control vector
-        xeWind (6,1) double; %equilibrium state vector
+        xeInW (6,1) double; %equilibrium state vector
         xWind (6,1) double;  %current state vector
         Vt;
         alpha;
@@ -34,7 +34,7 @@ classdef CalcDerivsLon < handle
     end
 
     methods
-        function self = CalcDerivsLon(xeWind, ue, paramsPath)
+        function self = CalcDerivsLon(xeInW, ue, paramsPath)
             self.nStates = 6;
             self.A = zeros(self.nStates, self.nStates);
             self.B = zeros(self.nStates, self.nControls);
@@ -52,20 +52,20 @@ classdef CalcDerivsLon < handle
             
             self.ue = ue; %[del_e, del_t]
             
-            self.toSI(xeWind);
-            self.xWind = self.xeWind;
+            self.toSI(xeInW);
+            self.xWind = self.xeInW;
             self.deltaUe = 0.3*ue;
-            self.deltaXwind = 0.3*self.xeWind; 
+            self.deltaXwind = 0.3*self.xeInW; 
             self.checkXlon();
             self.checkDeltaUe()
             self.populateFunctionVectorInW();
 
-            self.Vt = self.xeWind(self.VT_IDX);
-            self.alpha = self.xeWind(self.ALF_IDX);
-            self.q = self.xeWind(self.Q_IDX);
-            self.theta = self.xeWind(self.TH_IDX);
-            self.xI = self.xeWind(5);
-            self.zI = self.xeWind(6);
+            self.Vt = self.xeInW(self.VT_IDX);
+            self.alpha = self.xeInW(self.ALF_IDX);
+            self.q = self.xeInW(self.Q_IDX);
+            self.theta = self.xeInW(self.TH_IDX);
+            self.xI = self.xeInW(5);
+            self.zI = self.xeInW(6);
             self.MAX_THRUST = self.MAX_THRUST*c.LBF2N;
 
             
@@ -92,12 +92,12 @@ classdef CalcDerivsLon < handle
         end%funciton
         function toSI(self, xInW)
             c = self.c;
-            self.xeWind(self.ALF_IDX) = xInW(self.ALF_IDX)*c.DEG2RAD;
-            self.xeWind(self.TH_IDX) = xInW(self.TH_IDX)*c.DEG2RAD;
-            self.xeWind(self.VT_IDX) = xInW(self.VT_IDX)*c.FT2M;
-            self.xeWind(self.Q_IDX) =xInW(self.Q_IDX)*c.DEG2RAD;
-            self.xeWind(5) =xInW(5)*c.FT2M;
-            self.xeWind(6) =xInW(6)*c.FT2M;
+            self.xeInW(self.ALF_IDX) = xInW(self.ALF_IDX)*c.DEG2RAD;
+            self.xeInW(self.TH_IDX) = xInW(self.TH_IDX)*c.DEG2RAD;
+            self.xeInW(self.VT_IDX) = xInW(self.VT_IDX)*c.FT2M;
+            self.xeInW(self.Q_IDX) =xInW(self.Q_IDX)*c.DEG2RAD;
+            self.xeInW(5) =xInW(5)*c.FT2M;
+            self.xeInW(6) =xInW(6)*c.FT2M;
         end
         function xWindEnglish = toEnglish(self, x)
             c = self.c;
@@ -114,7 +114,7 @@ classdef CalcDerivsLon < handle
             fprintf("[ΔVt  Δθ Δα  Δq] = [%.2f   %.2f     %.2f     %.2f ]\n", deltaXWindEnglish(self.VT_IDX), deltaXWindEnglish(2),deltaXWindEnglish(self.ALF_IDX), deltaXWindEnglish(self.Q_IDX));
         end
         function printXe(self)
-                xeWindEnglish = self.toEnglish(self.xeWind);
+                xeWindEnglish = self.toEnglish(self.xeInW);
                 fprintf("[Vt θ α  q] = [%.2f   %.2f     %.2f     %.2f ]\n", xeWindEnglish(self.VT_IDX), xeWindEnglish(2), xeWindEnglish(self.ALF_IDX),xeWindEnglish(self.Q_IDX));
 
         end
@@ -136,7 +136,7 @@ classdef CalcDerivsLon < handle
         end
        
         function setInitialState(self, xe)
-            self.xeWind = xe;
+            self.xeInW = xe;
             self.xWind = xe;
         end
         function reset(self)
@@ -374,7 +374,7 @@ classdef CalcDerivsLon < handle
                     
                     
                     fi = self.FinW{i};
-                    n = fi(self.xeWind +deltaXj, self.ue ) - fi(self.xeWind - deltaXj , self.ue );
+                    n = fi(self.xeInW +deltaXj, self.ue ) - fi(self.xeInW - deltaXj , self.ue );
                     self.A(i,j) = n/(2*self.deltaXwind(j));
                 end
             end 
@@ -386,7 +386,7 @@ classdef CalcDerivsLon < handle
                     deltaUj = zeros(self.nControls, 1);
                     deltaUj(j) = self.deltaUe(j);
                     fi = self.FinW{i};
-                    n = fi(self.xeWind, self.ue +  deltaUj ) - fi(self.xeWind ,self.ue -deltaUj );
+                    n = fi(self.xeInW, self.ue +  deltaUj ) - fi(self.xeInW ,self.ue -deltaUj );
                     %fprintf("%d, %d\n", i,j);
                     self.B(i,j) = n/(2* self.deltaUe(j));
                 end
