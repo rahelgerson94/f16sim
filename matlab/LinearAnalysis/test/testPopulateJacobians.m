@@ -25,8 +25,18 @@ T = [1 0 0 0;
         0 1 0 0;
         0 0 0 1];
 fprintf("ΔVt     Δα     Δθ     Δq \n");
-A = test.getAinEnglishUnits();
-%A = test.A;
+%A = test.getAinEnglishUnits();
+A = test.A;
+B = test.B;
+
+% Save generated longitudinal Jacobians using full file paths.
+generatedDir = fullfile(matlabRoot, 'generated');
+if ~exist(generatedDir, 'dir')
+    mkdir(generatedDir);
+end
+
+save(fullfile(generatedDir, 'Alon.mat'), 'A');
+save(fullfile(generatedDir, 'Blon.mat'), 'B');
 StevensA = T*A(1:4, 1:4)*T;
 printMatrix(StevensA, 4);
-printMatrix(test.B(1:4,:)) %B is 6,2
+printMatrix(test.B(1:4,:),4) %B is 6,2
