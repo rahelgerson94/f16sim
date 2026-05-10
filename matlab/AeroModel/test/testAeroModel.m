@@ -19,13 +19,11 @@ params = getVehicleParams();
 % Pass only paths; AeroModel owns params construction.
 aeromodel = AeroModel(dataDir, paramsPath);
 
-N = 100;
+N = 400;
 alphaVec = linspace(0, 80, N);
 betaVec = linspace(-30, 30, N);
 dhVec = linspace(-25, 25, N);
  
-
-N = length(alphaVec);
 CfinB = zeros(N,3);
 CmInB = zeros(N,3);
 CfinW = zeros(N,3);

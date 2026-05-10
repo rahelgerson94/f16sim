@@ -54,8 +54,8 @@ classdef CalcDerivsLon < handle
             
             self.toSI(xeInW);
             self.xWind = self.xeInW;
-            self.deltaUe = 0.3*ue;
-            self.deltaXwind = 0.3*self.xeInW; 
+            self.deltaUe = 0.2*ue;
+            self.deltaXwind = 0.2*self.xeInW; 
             self.checkXlon();
             self.checkDeltaUe()
             self.populateFunctionVectorInW();
@@ -172,8 +172,8 @@ classdef CalcDerivsLon < handle
                     [0,q,0], ...
                     rho,...
                      [0; eleThr(1); 0; eleThr(2) ]);
-            FaeroInW = body2wind(FaeroInB, a, 0); 
-            MaeroInW = body2wind(MaeroInB, a, 0);
+            FaeroInW = body2wind(-FaeroInB, a, 0); 
+            MaeroInW = body2wind(MaeroInB, a, 0); 
            end
 
         function populateFunctionVectorInB(self)
