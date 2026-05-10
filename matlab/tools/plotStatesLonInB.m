@@ -1,4 +1,16 @@
-function []= plotStatesLonInB(time, U,W,Q,THETA, N,D)
+function []= plotStatesLonInB(time, U,W,Q,THETA, N,D, FinB, MinB)
+arguments
+    time
+    U
+    W
+    Q
+    THETA
+    N
+    D
+    FinB = []
+    MinB = []
+end
+
 %close all;
 
 c = getConstants();
@@ -29,3 +41,10 @@ for i = 1:3
 end
 % Link the time axes so zooming or panning one state plot keeps all states aligned.
 linkaxes(axesArray, 'x');
+
+if ~isempty(FinB) && ~isempty(MinB)
+    % Add the force and moment dashboard when histories are supplied.
+    plotForceMomentDashboard(time, FinB, MinB);
+end
+
+end

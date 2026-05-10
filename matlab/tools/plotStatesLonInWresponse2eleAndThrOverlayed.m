@@ -1,4 +1,15 @@
-function []= plotStatesLonInWresponse2eleAndThrOverlayed(time, VT, ALPHA, Q, THETA, N,D)
+function []= plotStatesLonInWresponse2eleAndThrOverlayed(time, VT, ALPHA, Q, THETA, N,D, FinB, MinB)
+arguments
+    time
+    VT
+    ALPHA
+    Q
+    THETA
+    N
+    D
+    FinB = []
+    MinB = []
+end
 
 c = getConstants();
 figure('Color', 'w');
@@ -34,3 +45,10 @@ for rowIdx = 1:3
 end
 % Link the time axes so zooming or panning one state plot keeps all states aligned.
 linkaxes(axesArray, 'x');
+
+if ~isempty(FinB) && ~isempty(MinB)
+    % Add the overlayed force and moment dashboard when histories are supplied.
+    plotForceMomentDashboard(time, FinB, MinB, struct("responseNames", {responseNames}));
+end
+
+end
