@@ -10,14 +10,13 @@ global c;
 global V_FT_S;
 global ALT_FT;
 c=getConstants();
-params = getVehicleParams(c);
+params = getVehicleParams();
+paramsPath = fullfile(fileparts(mfilename('fullpath')), '..', 'common', 'getVehicleParams.m');
 V_FT_S = 375.11;
 ALT_FT = 1000;
+% Pass only paths; AeroModel owns params construction.
 aeroModel =  AeroModel(dataDir, ...
-    '', ... %cfgDir
-    params.Sref, ...
-    params.bref, ...
-    params.cref);
+    paramsPath);
 %% initial values
 
 initialGuess = 1;
@@ -48,7 +47,7 @@ function [J ]= costStraighLevel(Z)
     x = Z(1:c.nStates);
     u = Z(c.nStates+1: end);
     assert(length(u)==4)
-    [~,~,xDot] = getXdotFromZ(Z);
+    [xDot,~,~] = getXdotFromZ(Z);
     [vInB, wInB, qI2B, ned] = unpackStateVector(x);
     [vInBdot, wInBdot, qI2Bdot, nedDot] = unpackStateVector(xDot);
     [Vt,a,beta]=uvw2mab(vInB);
@@ -68,6 +67,5 @@ function [J ]= costStraighLevel(Z)
     H = diag(ones(1,size(Q,1)));
     J = Q'*H*Q;
 end
-
 
 
