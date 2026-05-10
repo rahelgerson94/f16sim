@@ -4,9 +4,10 @@ function [vInW] = wind2body(vInW, alpha, beta)
 %%
     ca = cos(alpha);
     sa = sin(alpha);
-    B2S = [ ca 0   sa;
-            0   1 0 
-            -sa  0 ca];
+    B2S = [ ca   0   sa;
+            0    1   0 
+            -sa  0   ca];
+    
     S2B = B2S';
     cb = cos(beta);
     sb= sin(beta);

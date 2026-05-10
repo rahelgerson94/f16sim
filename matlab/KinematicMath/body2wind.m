@@ -2,9 +2,9 @@ function [vInW] = body2wind(vInB, alpha, beta)
 
     ca = cos(alpha);
     sa = sin(alpha);
-    B2S = [ ca 0   sa;
-            0  1    0 
-          -sa  0   ca];
+    B2S = [ ca   0   sa;
+            0    1   0 
+            -sa  0   ca];
 
      cb = cos(beta);
     sb= sin(beta);
