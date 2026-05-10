@@ -20,7 +20,7 @@ params = getVehicleParams();
 aeromodel = AeroModel(dataDir, paramsPath);
 
 N = 100;
-alphaVec = linspace(-25, 25, N);
+alphaVec = linspace(0, 40, N);
 betaVec = linspace(-30, 30, N);
 dhVec = linspace(-25, 25, N);
  
@@ -43,11 +43,12 @@ for i = 1:N
     CmInB(i,:)=Cm;
     % Convert the coefficient vectors with radians because body2wind uses sin/cos.
     alphaRad = alpha*c.DEG2RAD;
-       CfinW(i,:) = body2wind(Cf, alphaRad, 0);
+    CfinW(i,:) = -1*body2wind(Cf, alphaRad, 0);
+    % multiply by -1 because D is along -xb,
+    % C along -yb, L along -zb
     % CmInW(i,:)= body2wind(Cm, alphaRad, 0);
-    % Cd = -cos(alphaRad)*cxStruct.Cx + sin(alphaRad)*cxStruct.Cz;
-    % Cl= sin(alphaRad)*cxStruct.Cx      + cos(alphaRad)*cxStruct.Cz;
-    % CfinW(i,:) = [Cd; 0; Cl];
+
+
 end
 
 tiledlayout(1,2); L = 1.5;
