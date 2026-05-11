@@ -43,7 +43,7 @@ for i = 1:SIM_DURATION_SAMPLES
     X_LON_IN_W(i,:) = xInW;
     
     
-    X_LON_IN_B(i,:) = test.getStateInB();
+    %X_LON_IN_B(i,:) = test.getStateInB();
     [f,m] = test.getAeroFMInW( xInW, u);
     FORCES_IN_B(i,:) = wind2body(f, test.alpha, 0);
     MOMENTS_IN_B(i,:) = wind2body(m,test.alpha, 0);

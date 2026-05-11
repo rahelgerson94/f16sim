@@ -14,7 +14,6 @@ classdef CalcDerivsLon < handle
         deltaUe (2,1) double;
         ue (2,1) double;  %equilibrium control vector
         xeInW (6,1) double; %equilibrium state vector
-        xWind (6,1) double;  %current state vector
         Vt;
         alpha;
         theta; 
@@ -53,7 +52,7 @@ classdef CalcDerivsLon < handle
             self.ue = ue; %[del_e, del_t]
             
             self.toSI(xeInW);
-            self.xWind = self.xeInW;
+            
             self.deltaUe = 0.2*ue;
             self.deltaXwind = 0.2*self.xeInW; 
             self.checkXlon();
@@ -67,28 +66,18 @@ classdef CalcDerivsLon < handle
             self.xI = self.xeInW(5);
             self.zI = self.xeInW(6);
             self.MAX_THRUST = self.MAX_THRUST*c.LBF2N;
-
-            
         end
         function checkXlon(self)
-            SMALL_ANGLE = 30; %deg
-            SMALL_ANGLE_RATE = 10;%deg
-            SMALL_VELOCITY=30; %ft / s
             c = self.c;
-            for i =1:self.nStatesLon
-                if self.deltaXwind(i) == 0
-                    switch i
-                        case 1
-                            self.deltaXwind(i) = SMALL_VELOCITY*c.FT2M; 
-                        case 2
-                            self.deltaXwind(i) = SMALL_ANGLE*c.DEG2RAD; 
-                        case 3
-                            self.deltaXwind(i)  = SMALL_ANGLE_RATE*c.DEG2RAD;
-                        case 4
-                            self.deltaXwind(i)  = SMALL_ANGLE*c.DEG2RAD;
-                    end%switch
+            enums = [self.VT_IDX, self.TH_IDX,self.ALF_IDX,self.Q_IDX];
+            reallySmallVals = [.01, .001, .001, .0001];
+            TOL = 0.001;
+            for k = 1:numel(enums)
+                idx = enums(k);
+                if abs(self.deltaXwind(idx)-reallySmallVals(k)) < TOL
+                    self.deltaXwind(idx) = reallySmallVals(k);
                 end%if
-                end%for
+            end%for
         end%funciton
         function toSI(self, xInW)
             c = self.c;
@@ -137,7 +126,6 @@ classdef CalcDerivsLon < handle
        
         function setInitialState(self, xe)
             self.xeInW = xe;
-            self.xWind = xe;
         end
         function reset(self)
             self.A = zeros(self.nStates, self.nStates);
@@ -172,8 +160,9 @@ classdef CalcDerivsLon < handle
                     [0,q,0], ...
                     rho,...
                      [0; eleThr(1); 0; eleThr(2) ]);
-            FaeroInW = body2wind(-FaeroInB, a, 0); 
-            MaeroInW = body2wind(MaeroInB, a, 0); 
+               
+            FaeroInW = body2windCoeffs(FaeroInB, a, 0); 
+            MaeroInW = body2windCoeffs(MaeroInB, a, 0); 
            end
 
         function populateFunctionVectorInB(self)
@@ -319,29 +308,29 @@ classdef CalcDerivsLon < handle
         end
         function update(self, u, frame)
             if frame == 'w'
-                xDotInW = self.calcDerivsInB(self.xWind, u);
-                self.xWind = self.xWind + xDotInW*self.c.dt;
+                xDotInW = self.calcDerivsInB(self.xeInW, u);
+                self.xeInW = self.xeInW + xDotInW*self.c.dt;
             end
         end
         
         function updateWithFinW(self,u)
             xDot = zeros(self.nStates,1);
             for i = 1:self.nStates
-                xDot(i) = self.FinW{i}(self.xWind, u);
+                xDot(i) = self.FinW{i}(self.xeInW, u);
             end
-            self.xWind = self.xWind + xDot*self.c.dt;
+            self.xeInW = self.xeInW + xDot*self.c.dt;
             %self.updateWindComponents('w');
         end
         function updateWithFinB(self,u)
             xDot = zeros(self.nStates,1);
             for i = 1:self.nStates
-                xDot(i) = self.FinW{i}(self.xWind, u);
+                xDot(i) = self.FinW{i}(self.xeInB, u);
             end
-            self.xWind = self.xWind + xDot*self.c.dt;
+            self.xeInB = self.xeInB + xDot*self.c.dt;
                 end
 
          function x = getStateInW(self)
-            x = self.xWind;
+            x = self.xeInW;
         end
         function setDeltaVariables(self, deltaXlon)
             self.deltaXwind = deltaXlon;
@@ -353,12 +342,12 @@ classdef CalcDerivsLon < handle
              % will take in self, x, frame
             %%
             if frame == strcmp(frame, 'w')
-                self.Vt = self.xWind(self.VT_IDX);
-                self.alpha = self.xWind(self.TH_IDX);
-                self.q = self.xWind(self.Q_IDX);
-                self.theta = self.xWind(self.TH_IDX);
-                self.xI = self.xWind(5);
-                self.zI = self.xWind(6);
+                self.Vt = self.xeInW(self.VT_IDX);
+                self.alpha = self.xeInW(self.TH_IDX);
+                self.q = self.xeInW(self.Q_IDX);
+                self.theta = self.xeInW(self.TH_IDX);
+                self.xI = self.xeInW(5);
+                self.zI = self.xeInW(6);
             end
         end
         function populateA(self)
@@ -395,13 +384,13 @@ classdef CalcDerivsLon < handle
 
         function [u,w,q,theta,n,d] = getStateInB(self)
             %TODO: this is currently not functional, find out why 
-            vInB = wind2body([self.xWind(self.VT_IDX);0;0], ...
-                self.xWind(self.ALF_IDX), 0 );
+            vInB = wind2body([self.xeInB(self.VT_IDX);0;0], ...
+                self.xeInB(self.ALF_IDX), 0 );
             [u,v,w] = unpackVector3(vInB);
-            q = self.xWind(self.Q_IDX);
-            theta = self.xWind(self.TH_IDX);
-            n = self.xWind(5);
-            d = self.xWind(6);
+            q = self.xeInB(self.Q_IDX);
+            theta = self.xeInB(self.TH_IDX);
+            n = self.xeInB(5);
+            d = self.xeInB(6);
         end
         function Aenglish = getAinEnglishUnits(self)
             c= self.c;

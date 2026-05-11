@@ -15,7 +15,7 @@ dt = c.dt;
 plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 5;
+SIM_DURATION = 20;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);

@@ -22,5 +22,5 @@ xeInW = [VtFt thetaDeg alphaDeg  q 0 -h]';
 fprintf("α (deg): %.2f \n", atan2(w,u)*c.RAD2DEG);
 fprintf("(u, w) = %.2f , %.2f\n", u*c.M2FT, w*c.M2FT );
 fprintf("ue : [δ_e, δ_t] = [%.2f   %.2f]\n", ue)
-fprintf("[Vt (ft),  α (deg), θ (deg), q (deg)]  = [%.2f    %.2f     %.2f     %.2f ]\n", VtFt, alphaDeg, q, thetaDeg);
+fprintf("[Vt (ft),   θ (deg), α (deg), q (deg)]  = [%.2f    %.2f     %.2f     %.2f ]\n", VtFt, thetaDeg, alphaDeg, q );
 %fprintf("α = %.2f, β = %.2f\n", alpha, beta)
