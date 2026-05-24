@@ -13,9 +13,9 @@ xeInW = load([matlabRoot '/generated/xeInW.mat']).xeInW;
 ue = load([matlabRoot '/generated/ue.mat']).ue;
 fprintf("ue : [δ_e, δ_t] = [%.2f   %.2f]\n", ue)
 fprintf("[Vt (ft),   θ (deg), α (deg), q (deg)]  = [%.2f    %.2f     %.2f     %.2f ]\n", xeInW(1), xeInW(2), xeInW(3), xeInW(4) );
-Vt = xeInW(1)*c.FT2M;
-wB_rad = [0 ;  xeInW(3); 0];
-aert = [0; ue(1); 0; ue(2)];
+Vt = xeInW(c.lon.VT_IDX)*c.FT2M;
+wB_rad = [0 ;  xeInW(c.lon.Q_IDX); 0];
+aert = [0; ue(c.lon.ELE_IDX); 0; ue(c.lon.THTL_IDX)];
 hM = -xeInW(6)*c.FT2M;
 
 c = getConstants();
