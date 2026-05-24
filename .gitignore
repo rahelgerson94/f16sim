@@ -4,3 +4,4 @@
 matlab/generated/**
 **/.mat
 **/**.docx
+artifacts/**
