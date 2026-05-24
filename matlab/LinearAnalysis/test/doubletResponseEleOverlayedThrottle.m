@@ -17,7 +17,7 @@ dt = c.dt;
 plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 10;
+SIM_DURATION = 8;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
@@ -36,7 +36,7 @@ M_AEROs={}; F_AEROs={};responseLabels = {"elevator", "throttle"};
 subscripts = {'e', 't'};
 for controlIdx = 1:2
     % Start each input response from trim so the overlay compares independent doublets.
-    test = CalcDerivsLon(xe, ue, paramsPath);
+    test = CalcDerivsLon(xeInW, ue, paramsPath);
     CTRL_INP_IDX = controlIdx;
     X_LON_IN_W = zeros(SIM_DURATION_SAMPLES,6);
     X_LON_IN_B = zeros(SIM_DURATION_SAMPLES,6);
