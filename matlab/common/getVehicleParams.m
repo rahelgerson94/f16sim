@@ -8,8 +8,8 @@ params.geometry.Sref = 300*c.FT2M^2;      % Reference Area, m^2
 params.geometry.bref =  30*c.FT2M;        % Wing Span, m
 params.geometry.cref =  11.32*c.FT2M;     % Aerodynamic Mean Chord, m
 params.rho = 1.293;         % Air Density, kg/m^3
-params.geometry.xcgr = 0.35;         % reference center of gravity as a fraction of cbar
-params.geometry.xcg  = 0.30;         % center of gravity as a fraction of cbar.
+params.geometry.xcgr = 0.35*params.geometry.cref;         % reference center of gravity as a fraction of cbar
+params.geometry.xcg  = 0.30*params.geometry.cref;         % center of gravity as a fraction of cbar.
 
 %% MASS PROPERTIES
 Ixx = 9496.0;            % Principle Moment of Intertia around X-axis, slugs*ft^2

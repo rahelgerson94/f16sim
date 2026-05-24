@@ -79,6 +79,8 @@ c.lon.VT_IDX = 1;
 c.lon.TH_IDX =2;
 c.lon.ALF_IDX = 3; 
 c.lon.Q_IDX=4;
+c.lon.N_IDX=5;
+c.lon.D_IDX=6;
 c.lon.ELE_IDX = 1; 
 c.lon.THTL_IDX=2;
 end

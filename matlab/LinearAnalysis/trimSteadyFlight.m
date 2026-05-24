@@ -12,33 +12,33 @@ global ALT_FT;
 c=getConstants();
 params = getVehicleParams();
 paramsPath = fullfile(fileparts(mfilename('fullpath')), '..', 'common', 'getVehicleParams.m');
-V_FT_S = 375.11;
-ALT_FT = 1000;
+V_FT_S = 502.11;
+ALT_FT = 1500;
 % Pass only paths; AeroModel owns params construction.
 aeroModel =  AeroModel(dataDir, ...
     paramsPath);
 %% initial values
 
-initialGuess = 1;
+initialGuess = 0;
 
 %% ------------ BEGIN ------------
 if initialGuess
     X = zeros(c.nStates,1);
     X(1)=V_FT_S*c.FT2M;
-    X(7) = 1; %qw = 1
+    %X(7) = 1; %qw = 1
     
     X(c.nStates) = -ALT_FT*c.FT2M;
     aert = [0 0 0 0]'; 
     Zguess = [X; aert];
 else
-    S = load('zStar.mat');
+    S = load('generated/zStar.mat');
     zStar = S.zStar;
     Zguess =zStar;
 end
 
 [zStar, J] = fminsearch(@costStraighLevel, Zguess,...
-    optimset('TolX', 1e-10, 'MaxFunEvals', 5000,'MaxIter',10000));
-save('zStar.mat', 'zStar');
+    optimset('TolX', 1e-10, 'MaxFunEvals', 10000,'MaxIter',10000));
+save('generated/zStar.mat', 'zStar');
 
 
 function [J ]= costStraighLevel(Z)
@@ -55,14 +55,14 @@ function [J ]= costStraighLevel(Z)
     % define the constraints vector Q 
     Q = [vInBdot;
             wInBdot;
-            qI2Bdot(2:3);
-            V_FT_S - (vInB(1)^2 + vInB(3)^2)^0.5*c.M2FT ;
+            qI2Bdot(2:4);
+            V_FT_S*c.FT2M - (vInB(1)^2 + vInB(2)^2+vInB(3)^2)^0.5 ;
             vInB(2);
             eulerAngles(1); %no roll
             %wInB(1) ;
             eulerAngles(3); %flying north
             %ned(3)*c.M2FT + ALT_FT;
-            %u(4); %assume we dont control throttle for now
+            
             ];
     H = diag(ones(1,size(Q,1)));
     J = Q'*H*Q;

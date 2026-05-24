@@ -11,7 +11,6 @@ uStar=zStar(c.nStates+1:end);
 [vInB, wInBrad, qI2B, ned] = unpackStateVector(xStar);
 [Vt,a,b ]= uvw2mab(vInB);
 alphaDeg = a*c.RAD2DEG; betaDeg  = b*c.RAD2DEG;
-V = vecnorm(vInB);
 rho = rhoFromAlt(-xStar(13));
 aeroModel =  AeroModel(dataDir, ...
     paramsPath);
@@ -22,7 +21,7 @@ aeroModel =  AeroModel(dataDir, ...
 [ FaeroInB, MaeroInB] = aeroModel.getAeroFM( ...
        alphaDeg, ...
         betaDeg, ...
-        V,  ...
+        Vt,  ...
         wInBrad, ...
         rho,...
         uStar);
@@ -47,8 +46,8 @@ end
     fprintf( "eulerRates failed\n");
     printVecWithName(eaRates, "euler rates");
 end
-if (vecnorm(nedDot)*c.M2FT)  > V_FT_S + 0.5 || (vecnorm(nedDot)*c.M2FT)  < V_FT_S - .5
-    printVecWithName(vInB*c.M2FT, "rI");
+if (abs(vecnorm(nedDot*c.M2FT - [V_FT_S 0 0] )))  > + 0.5 
+    printVecWithName(nedDot*c.M2FT, "nedDot");
     fprintf( "u failed\n");
 end
 eas = Quaternion.eulerAngles321FromQuaternion(qI2B) * c.RAD2DEG;
@@ -60,6 +59,15 @@ printVecWithName(ned*c.M2FT, "ned (ft)");
 printVecWithName(uStar, "aert");
 printVecWithName([vInB(1) vInB(3) pqr(2) eas(2) ned(1)  ned(3)], "xLon");
 
-if bPlot
-
-end
+ue = zeros(2,1);
+ue(c.lon.ELE_IDX) = uStar(2);
+ue(c.lon.THTL_IDX) = uStar(4);
+save('generated/ue.mat', 'ue');
+xeInW = zeros(4,1) ;%Vt Theta alpha q 
+xeInW(c.lon.VT_IDX) = Vt;
+xeInW(c.lon.ALF_IDX) = alphaDeg;
+xeInW(c.lon.TH_IDX) = eas(2);
+xeInW(c.lon.Q_IDX) = pqr(2);
+xeInW(c.lon.N_IDX) = ned(1);
+xeInW(c.lon.D_IDX) = ned(3);
+save('generated/xeInW.mat', 'xeInW');

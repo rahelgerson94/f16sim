@@ -1,4 +1,5 @@
 prp = fileparts(fileparts(mfilename('fullpath')));
+matlabRoot = [prp '/matlab'];
 dataDir = fullfile(prp, 'matlab/AeroModel', 'data');
 addpath(prp);
 addpath(fullfile(prp, 'matlab/AeroModel'));

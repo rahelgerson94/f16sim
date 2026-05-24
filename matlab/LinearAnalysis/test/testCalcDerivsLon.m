@@ -5,7 +5,9 @@ matlabRoot = fullfile(testDir, '..', '..');
 currentDir = pwd;
 cd(matlabRoot); setupProject; cd(fullfile(matlabRoot, 'LinearAnalysis'));
 c = getConstants();
-f16NominalTrim; % get xe, ue into the workspace
+%f16NominalTrim; % get xe, ue into the workspace
+xeInW = load([matlabRoot '/generated/xeInW.mat']).xeInW;
+ue = load([matlabRoot '/generated/ue.mat']).ue;
 
 cd(currentDir);
 paramsPath = fullfile(matlabRoot, 'common', 'getVehicleParams.m');
@@ -15,7 +17,7 @@ dt = c.dt;
 plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 8;
+SIM_DURATION = 15;
 APPLICATION_START_IDX = 1/dt;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.

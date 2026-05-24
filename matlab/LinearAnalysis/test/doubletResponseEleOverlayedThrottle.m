@@ -5,7 +5,9 @@ matlabRoot = fullfile(testDir, '..', '..');
 currentDir = pwd;
 cd(matlabRoot); setupProject; cd(fullfile(matlabRoot, 'LinearAnalysis'));
 c = getConstants();
-f16NominalTrim; % get xe, ue into the workspace
+%f16NominalTrim; % get xe, ue into the workspace
+xeInW = load([matlabRoot '/generated/xeInW.mat']).xeInW;
+ue = load([matlabRoot '/generated/ue.mat']).ue;
 cd(currentDir);
 paramsPath = fullfile(matlabRoot, 'common', 'getVehicleParams.m');
 % Pass the params function path so CalcDerivsLon builds params internally.
@@ -15,7 +17,7 @@ dt = c.dt;
 plotInB = false;
 plotInW = true;
 %% simulation parameters
-SIM_DURATION = 20;
+SIM_DURATION = 10;
 SIM_DURATION_SAMPLES = ceil(SIM_DURATION/dt);
 % Build the time vector used by the longitudinal state plot.
 time = linspace(0, SIM_DURATION, SIM_DURATION_SAMPLES);
@@ -54,7 +56,7 @@ for controlIdx = 1:2
         X_LON_IN_W(sampleIdx,:) = xInW;
         
         
-        X_LON_IN_B(sampleIdx,:) = test.getStateInB();
+        %X_LON_IN_B(sampleIdx,:) = test.getStateInB();
         [f,m] = test.getAeroFMInW( xInW, u);
         FORCES_IN_B(sampleIdx,:) = -1*wind2body(f, test.alpha, 0);
         MOMENTS_IN_B(sampleIdx,:) = -1*wind2body(m,test.alpha, 0);

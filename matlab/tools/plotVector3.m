@@ -56,6 +56,8 @@ for i = 1:3
     end
     if i == 3
         xlabel(axesArray(i), 't');
+        grid(axesArray(i), 'on');
+        ylabel(axesArray(i), labels{i});
     end
 end
 
